@@ -70,7 +70,7 @@ impl App {
 
         println!("Commands:");
         for c in &self.commands {
-            println!("   {} {} [arg]", self.name, c.name)
+            println!("   {}", c.usage);
         }
     }
 

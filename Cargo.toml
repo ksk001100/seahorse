@@ -1,6 +1,6 @@
 [package]
 name = "seahorse"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["KeisukeToyota <hm.pudding0715@gmail.com>"]
 edition = "2018"
 keywords = ["cli"]

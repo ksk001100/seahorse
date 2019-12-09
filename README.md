@@ -6,7 +6,7 @@ A minimal CLI framework written in Rust
 
 ```toml
 [dependencies]
-seahorse = { version = "0.1.0", git = "https://github.com/KeisukeToyota/seahorse.git" }
+seahorse = "0.1.1"
 ```
 
 ## Example
