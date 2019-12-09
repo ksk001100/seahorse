@@ -14,6 +14,7 @@ seahorse = { version = "0.1.0", git = "https://github.com/KeisukeToyota/seahorse
 ```rust
 use std::env;
 use seahorse::App;
+use seahorse::color;
 use seahorse::command::Command;
 
 fn main() {
