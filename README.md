@@ -13,14 +13,12 @@ seahorse = { version = "0.1.0", git = "https://github.com/KeisukeToyota/seahorse
 
 ```rust
 use std::env;
-use seahorse::App;
-use seahorse::color;
-use seahorse::command::Command;
+use seahorse::{App, Command, color};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let command = Command{name: "hello", action: |s: String| println!("Hello, {}", s)}
+    let command = Command{name: "hello".to_string(), action: |v: Vec<String>| println!("Hello, {:?}", v)}
 
     let mut app = App::new();
 

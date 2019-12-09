@@ -1,12 +1,18 @@
 pub mod color;
-pub mod command;
+
+pub type Action = fn(Vec<String>);
+
+pub struct Command {
+    pub name: String,
+    pub action: Action,
+}
 
 pub struct App {
     pub name: String,
     pub display_name: String,
     pub usage: String,
     pub version: String,
-    pub commands: Vec<command::Command>,
+    pub commands: Vec<Command>,
 }
 
 impl App {
@@ -16,17 +22,21 @@ impl App {
             display_name: "".to_string(),
             usage: "".to_string(),
             version: "".to_string(),
-            commands: Vec::<command::Command>::new(),
+            commands: Vec::<Command>::new(),
         }
     }
 
     pub fn run(&self, args: Vec<String>) {
-        let (cmd, arg) = match args.len() {
-            3 => ((&args[1]).clone(), (&args[2]).clone()),
-            _ => (String::new(), String::new()),
+        let (cmd_v, args_v) = args.split_at(1);
+        let cmd = match cmd_v.first() {
+            Some(c) => c,
+            None => {
+                self.help();
+                std::process::exit(1);
+            }
         };
 
-        match (cmd.len(), arg.len()) {
+        match (cmd.len(), args_v.len()) {
             (0, _) | (_, 0) => {
                 self.help();
                 std::process::exit(1);
@@ -35,7 +45,7 @@ impl App {
         }
 
         match self.select_command(&cmd) {
-            Some(command) => (command.action)(arg),
+            Some(command) => (command.action)(args),
             None => self.help(),
         }
     }
@@ -55,9 +65,40 @@ impl App {
         }
     }
 
-    fn select_command(&self, cmd: &String) -> Option<&command::Command> {
+    fn select_command(&self, cmd: &String) -> Option<&Command> {
         (&self.commands)
             .into_iter()
             .find(|command| &command.name == cmd)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{App, Command};
+
+    #[test]
+    fn app_test() {
+        let c = Command {
+            name: "hello".to_string(),
+            action: |v: Vec<String>| println!("Hello, {:?}", v),
+        };
+        let mut app = App::new();
+        app.name = "test".to_string();
+        app.usage = "test [command] [arg]".to_string();
+        app.version = "0.0.1".to_string();
+        app.commands = vec![c];
+
+        app.run(vec![
+            "test".to_string(),
+            "hello".to_string(),
+            "arg1".to_string(),
+            "arg2".to_string(),
+            "arg3".to_string(),
+            "arg4".to_string(),
+        ]);
+
+        assert_eq!(app.name, "test".to_string());
+        assert_eq!(app.usage, "test [command] [arg]".to_string());
+        assert_eq!(app.version, "0.0.1".to_string());
     }
 }
