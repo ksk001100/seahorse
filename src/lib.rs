@@ -27,6 +27,14 @@ impl App {
     }
 
     pub fn run(&self, args: Vec<String>) {
+        match args.len() {
+            1 => {
+                self.help();
+                std::process::exit(1);
+            }
+            _ => (),
+        }
+
         let (cmd_v, args_v) = args[1..].split_at(1);
         let cmd = match cmd_v.first() {
             Some(c) => c,
