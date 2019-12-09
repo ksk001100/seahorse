@@ -5,6 +5,7 @@ authors = ["KeisukeToyota <hm.pudding0715@gmail.com>"]
 edition = "2018"
 keywords = ["cli"]
 readme = "README.md"
+license-file = "LICENSE"
 description = "A minimal CLI framework written in Rust"
 
 [dependencies]
