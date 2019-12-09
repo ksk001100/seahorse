@@ -45,7 +45,7 @@ impl App {
         }
 
         match self.select_command(&cmd) {
-            Some(command) => (command.action)(args),
+            Some(command) => (command.action)(args_v.to_vec()),
             None => self.help(),
         }
     }
