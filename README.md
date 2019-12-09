@@ -18,7 +18,11 @@ use seahorse::{App, Command, color};
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let command = Command{name: "hello".to_string(), action: |v: Vec<String>| println!("Hello, {:?}", v)}
+    let command = Command {
+        name: "hello".to_string(),
+        usage: "cli_tool hello user".to_string(),
+        action: |v: Vec<String>| println!("Hello, {:?}", v)
+    };
 
     let mut app = App::new();
 
