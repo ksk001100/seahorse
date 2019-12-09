@@ -3,5 +3,9 @@ name = "seahorse"
 version = "0.1.0"
 authors = ["KeisukeToyota <hm.pudding0715@gmail.com>"]
 edition = "2018"
+keywords = ["cli"]
+readme = "README.md"
+description = "A minimal CLI framework written in Rust"
+documentation = http://KeenS.github.io/file_logger/file_logger/
 
 [dependencies]
