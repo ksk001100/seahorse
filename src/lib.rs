@@ -4,6 +4,7 @@ pub type Action = fn(Vec<String>);
 
 pub struct Command {
     pub name: String,
+    pub usage: String,
     pub action: Action,
 }
 
@@ -88,6 +89,7 @@ mod tests {
     fn app_test() {
         let c = Command {
             name: "hello".to_string(),
+            usage: "test hello user".to_string(),
             action: |v: Vec<String>| println!("Hello, {:?}", v),
         };
         let mut app = App::new();
