@@ -8,6 +8,17 @@ pub struct Command {
     pub action: Action,
 }
 
+impl Command {
+    pub fn new<T: Into<String>>(name: T, usage: T, action: Action) -> Self {
+        Self {
+            name: name.into(),
+            usage: usage.into(),
+            action,
+        }
+    }
+}
+
+#[derive(Default)]
 pub struct App {
     pub name: String,
     pub display_name: String,
@@ -18,13 +29,32 @@ pub struct App {
 
 impl App {
     pub fn new() -> Self {
-        Self {
-            name: "".to_string(),
-            display_name: "".to_string(),
-            usage: "".to_string(),
-            version: "".to_string(),
-            commands: Vec::<Command>::new(),
-        }
+        Self::default()
+    }
+
+    pub fn name<T: Into<String>>(mut self, name: T) -> Self {
+        self.name = name.into();
+        self
+    }
+
+    pub fn display_name<T: Into<String>>(mut self, display_name: T) -> Self {
+        self.display_name = display_name.into();
+        self
+    }
+
+    pub fn usage<T: Into<String>>(mut self, usage: T) -> Self {
+        self.usage = usage.into();
+        self
+    }
+
+    pub fn version<T: Into<String>>(mut self, version: T) -> Self {
+        self.version = version.into();
+        self
+    }
+
+    pub fn commands(mut self, commands: Vec<Command>) -> Self {
+        self.commands = commands;
+        self
     }
 
     pub fn run(&self, args: Vec<String>) {
@@ -83,20 +113,17 @@ impl App {
 
 #[cfg(test)]
 mod tests {
-    use super::{App, Command};
+    use super::{Action, App, Command};
 
     #[test]
     fn app_test() {
-        let c = Command {
-            name: "hello".to_string(),
-            usage: "test hello user".to_string(),
-            action: |v: Vec<String>| println!("Hello, {:?}", v),
-        };
-        let mut app = App::new();
-        app.name = "test".to_string();
-        app.usage = "test [command] [arg]".to_string();
-        app.version = "0.0.1".to_string();
-        app.commands = vec![c];
+        let a: Action = |v: Vec<String>| println!("Hello, {:?}", v);
+        let c = Command::new("hello", "test hello user", a);
+        let app = App::new()
+            .name("test")
+            .usage("test [command] [arg]")
+            .version("0.0.1")
+            .commands(vec![c]);
 
         app.run(vec![
             "test".to_string(),
