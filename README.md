@@ -6,7 +6,7 @@ A minimal CLI framework written in Rust
 
 ```toml
 [dependencies]
-seahorse = "0.1.1"
+seahorse = "0.2.0"
 ```
 
 ## Example
@@ -17,27 +17,26 @@ use seahorse::{App, Command, color};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-
-    let command = Command {
-        name: "hello".to_string(),
-        usage: "cli_tool hello user".to_string(),
-        action: |v: Vec<String>| println!("Hello, {:?}", v)
-    };
-
-    let mut app = App::new();
-
-    app.name = "cli_tool".to_string();
-    app.display_name = color::magenta("
+    let display_name = color::magenta("
      ██████╗██╗     ██╗
     ██╔════╝██║     ██║
     ██║     ██║     ██║
     ██║     ██║     ██║
     ╚██████╗███████╗██║
     ╚═════╝╚══════╝╚═╝");
-    app.usage = "cli_tool [command] [arg]".to_string();
-    app.version = env!("CARGO_PKG_VERSION").to_string();
-    app.commands = vec![command];
+    let command = Command {
+        name: "hello",
+        usage: "cli_tool hello user",
+        action: |v: Vec<String>| println!("Hello, {:?}", v)
+    };
 
-    app.run(args.clone());
+    let mut app = App::new()
+        .name("cli_tool")
+        .display_name("display_name")
+        .usage("cli_tool [command] [arg]")
+        .version(env!("CARGO_PKG_VERSION"))
+        .commands(vec![command]);
+
+    app.run(args);
 }
 ```
