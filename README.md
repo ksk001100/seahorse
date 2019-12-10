@@ -1,12 +1,18 @@
 # seahorse
 
+[![crates.io](https://img.shields.io/crates/v/seahorse.svg)](https://crates.io/crates/seahorse)
+![](https://img.shields.io/github/release/KeisukeToyota/seahorse.svg)
+![](https://img.shields.io/github/issues/KeisukeToyota/seahorse.svg)
+![](https://img.shields.io/github/forks/KeisukeToyota/seahorse.svg)
+![](https://img.shields.io/github/license/KeisukeToyota/seahorse.svg)
+
 A minimal CLI framework written in Rust
 
 ## Using
 
 ```toml
 [dependencies]
-seahorse = "0.2.0"
+seahorse = "0.2.1"
 ```
 
 ## Example
@@ -32,7 +38,7 @@ fn main() {
 
     let mut app = App::new()
         .name("cli_tool")
-        .display_name("display_name")
+        .display_name(display_name)
         .usage("cli_tool [command] [arg]")
         .version(env!("CARGO_PKG_VERSION"))
         .commands(vec![command]);
