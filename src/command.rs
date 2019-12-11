@@ -15,3 +15,17 @@ impl Command {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{Command, Action};
+
+    #[test]
+    fn command_test() {
+        let a: Action = |v: Vec<String>| println!("Hello, {:?}", v);
+        let c = Command::new("hello", "test hello user", a);
+
+        assert_eq!(c.name, "hello".to_string());
+        assert_eq!(c.usage, "test hello user".to_string());
+    }
+}
