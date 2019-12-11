@@ -1,5 +1,5 @@
 [package]
-name = "example"
+name = "cli_tool"
 version = "0.1.0"
 authors = ["KeisukeToyota <hm.pudding0715@gmail.com>"]
 edition = "2018"
