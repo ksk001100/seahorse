@@ -1,7 +1,7 @@
 [package]
 name = "seahorse"
-version = "0.2.3"
-authors = ["KeisukeToyota <hm.pudding0715@gmail.com>"]
+version = "0.2.4"
+authors = ["ksk001100 <hm.pudding0715@gmail.com>"]
 edition = "2018"
 keywords = ["cli"]
 readme = "README.md"
