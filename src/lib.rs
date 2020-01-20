@@ -1,8 +1,8 @@
-mod app;
 mod action;
-mod command;
+mod app;
 pub mod color;
+mod command;
 
-pub use app::{App, SingleApp};
 pub use action::Action;
+pub use app::{App, SingleApp};
 pub use command::Command;

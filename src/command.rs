@@ -18,7 +18,7 @@ impl Command {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Command, Action};
+    use crate::{Action, Command};
 
     #[test]
     fn command_test() {
