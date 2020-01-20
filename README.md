@@ -12,11 +12,12 @@ A minimal CLI framework written in Rust
 
 ```toml
 [dependencies]
-seahorse = "0.2.3"
+seahorse = "0.3.0"
 ```
 
 ## Example
 
+### Multiple action app
 ```rust
 use std::env;
 use seahorse::{App, Action, Command, color};
@@ -46,3 +47,30 @@ fn main() {
 
 ![](images/screen_shot1.png)
 ![](images/screen_shot2.png)
+
+### Single action app
+```rust
+use std::env;
+use seahorse::{SingleApp, Action, color};
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    let action: Action = |v: Vec<String>| println!("Hello, {:?}", v);
+    let display_name = color::magenta("
+     ██████╗██╗     ██╗
+    ██╔════╝██║     ██║
+    ██║     ██║     ██║
+    ██║     ██║     ██║
+    ╚██████╗███████╗██║
+    ╚═════╝╚══════╝╚═╝");
+
+    let app = SingleApp::new()
+        .name("cli_tool")
+        .display_name(display_name)
+        .usage("cli_tool [args]")
+        .version(env!("CARGO_PKG_VERSION"))
+        .action(action);
+
+    app.run(args);
+}
+```
