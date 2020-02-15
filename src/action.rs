@@ -1,1 +1,3 @@
-pub type Action = fn(Vec<String>);
+use crate::Context;
+
+pub type Action = fn(&Context);

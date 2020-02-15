@@ -1,4 +1,4 @@
-use crate::Action;
+use crate::{Action, Context, Flag};
 
 pub struct SingleApp {
     pub name: String,
@@ -6,6 +6,7 @@ pub struct SingleApp {
     pub usage: String,
     pub version: String,
     pub action: Action,
+    pub flags: Option<Vec<Flag>>
 }
 
 impl Default for SingleApp {
@@ -15,7 +16,8 @@ impl Default for SingleApp {
             display_name: "".to_string(),
             usage: "".to_string(),
             version: "".to_string(),
-            action: |v: Vec<String>| println!("{:?}", v),
+            action: |c: &Context| println!("{:?}", c.args),
+            flags: None,
         }
     }
 }
@@ -50,10 +52,15 @@ impl SingleApp {
         self
     }
 
+    pub fn flags(mut self, flags: Vec<Flag>) -> Self {
+        self.flags = Some(flags);
+        self
+    }
+
     pub fn run(&self, args: Vec<String>) {
         match args.len() {
             1 => self.help(),
-            _ => (self.action)(args[1..].to_vec()),
+            _ => (self.action)(&Context::new(args[1..].to_vec(), self.flags.clone()))
         }
     }
 
@@ -70,18 +77,31 @@ impl SingleApp {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Action, SingleApp};
+    use crate::{Action, Context, SingleApp, Flag, FlagType};
 
     #[test]
     fn single_app_test() {
-        let a: Action = |v: Vec<String>| println!("Hello, {:?}", v);
+        let a: Action = |c: &Context| {
+            if c.bool_flag("bool") {
+                assert!(true, "bool test true");
+            } else {
+                assert!(false, "bool test false");
+            }
+        };
         let app = SingleApp::new()
             .name("test")
             .usage("test [url]")
             .version("0.0.1")
-            .action(a);
+            .action(a)
+            .flags(vec![
+                Flag::new("bool", "test [url] --bool", FlagType::Bool)
+            ]);
 
-        app.run(vec!["test".to_string(), "http://google.com".to_string()]);
+        app.run(vec![
+            "test".to_string(),
+            "http://google.com".to_string(),
+            "--bool".to_string()
+        ]);
 
         assert_eq!(app.name, "test".to_string());
         assert_eq!(app.usage, "test [url]".to_string());

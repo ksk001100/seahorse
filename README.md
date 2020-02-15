@@ -12,7 +12,7 @@ A minimal CLI framework written in Rust
 
 ```toml
 [dependencies]
-seahorse = "0.3.1"
+seahorse = "0.4.0"
 ```
 
 ## Example
@@ -20,11 +20,36 @@ seahorse = "0.3.1"
 ### Multiple action app
 ```rust
 use std::env;
-use seahorse::{App, Action, Command, color};
+use seahorse::{
+    App,
+    Action,
+    Command,
+    Context,
+    Flag,
+    FlagType,
+    color
+};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let action: Action = |v: Vec<String>| println!("Hello, {:?}", v);
+    let action: Action = |c: &Context| {
+        let name = &c.args[2];
+        if c.bool_flag("bye") {
+            println!("Bye, {}", name);
+        } else {
+            println!("Hello, {}", name);
+        }
+
+        match c.string_flag("other") {
+            Some(val) => println!("{}", val),
+            _ => println!("Not other...")
+        }
+
+        match c.int_flag("age") {
+            Some(val) => println!("{} is {} years old", name, val),
+            _ => println!("I don't know how old {} is...", name)
+        }
+    };
     let display_name = color::magenta("
      ██████╗██╗     ██╗
     ██╔════╝██║     ██║
@@ -32,7 +57,15 @@ fn main() {
     ██║     ██║     ██║
     ╚██████╗███████╗██║
     ╚═════╝╚══════╝╚═╝");
-    let command = Command::new("hello", "cli_tool hello user", action);
+    let command = Command::new()
+        .name("hello")
+        .usage("cli_tool hello [name]")
+        .action(action)
+        .flags(vec![
+            Flag::new("bye", "cli_tool hello [name] --bye", FlagType::Bool),
+            Flag::new("other", "cli_tool hello [name] --other [string]", FlagType::String),
+            Flag::new("age", "cli_tool hello [name] --age [int]", FlagType::Int),
+        ]);
 
     let app = App::new()
         .name("cli_tool")
@@ -45,17 +78,28 @@ fn main() {
 }
 ```
 
-![](images/screen_shot1.png)
-![](images/screen_shot2.png)
+```bash
+$ cli_tool hello John --age 10 --other test
+Hello, John
+test
+John is 10 years old 
+```
 
 ### Single action app
 ```rust
 use std::env;
-use seahorse::{SingleApp, Action, color};
+use seahorse::{SingleApp, Action, color, Context, Flag, FlagType};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let action: Action = |v: Vec<String>| println!("Hello, {:?}", v);
+    let action: Action = |c: &Context| {
+        let name = &c.args[0];
+        if c.bool_flag("bye") {
+            println!("Bye, {:?}", name);
+        } else {
+            println!("Hello, {:?}", name);
+        }
+    };
     let display_name = color::magenta("
      ██████╗██╗     ██╗
     ██╔════╝██║     ██║
@@ -69,8 +113,19 @@ fn main() {
         .display_name(display_name)
         .usage("cli_tool [args]")
         .version(env!("CARGO_PKG_VERSION"))
-        .action(action);
+        .action(action)
+        .flags(vec![
+            Flag::new("bye", "cli_tool args --bye", FlagType::Bool),
+        ]);
 
     app.run(args);
 }
+```
+
+```bash
+$ cli_tool John
+Hello, "John"
+
+$ cli_tool John --bye
+Bye, "John"
 ```
