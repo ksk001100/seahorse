@@ -5,7 +5,7 @@ pub struct Flag {
     pub flag_type: FlagType,
 }
 
-#[derive(Clone)]
+#[derive(PartialOrd, PartialEq, Clone)]
 pub enum FlagType {
     Bool,
     String,

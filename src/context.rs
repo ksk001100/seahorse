@@ -1,4 +1,4 @@
-use crate::{Flag, FlagValue};
+use crate::{Flag, FlagValue, FlagType};
 
 pub struct Context {
     pub args: Vec<String>,
@@ -8,9 +8,17 @@ pub struct Context {
 impl Context {
     pub fn new(args: Vec<String>, flags: Option<Vec<Flag>>) -> Self {
         let mut v = Vec::new();
+        let mut parsed_args = args.clone();
         let flags_val = match flags {
             Some(flags) => {
                 for flag in flags {
+                    if parsed_args.contains(&format!("--{}", flag.name)) {
+                        let index = parsed_args.iter().position(|arg| *arg == format!("--{}", flag.name)).unwrap();
+                        parsed_args.remove(index);
+                        if flag.flag_type != FlagType::Bool {
+                            parsed_args.remove(index);
+                        }
+                    }
                     v.push((flag.name.to_string(), flag.value(args.clone())))
                 }
                 Some(v)
@@ -18,7 +26,7 @@ impl Context {
             None => None
         };
 
-        Self { args, flags: flags_val }
+        Self { args: parsed_args, flags: flags_val }
     }
 
     fn option_flag_value(&self, name: &str) -> Option<&FlagValue> {

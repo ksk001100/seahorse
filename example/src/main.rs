@@ -1,5 +1,5 @@
 use std::env;
-use seahorse::{App, Action, Command, color, Flag, FlagType, Context};
+use seahorse::{App, Command, color, Flag, FlagType, Context};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
