@@ -75,16 +75,25 @@ impl App {
 
     fn help(&self) {
         match self.display_name.len() {
-            0 => println!("Name:\n   {}\n", self.name),
-            _ => println!("Name:\n   {}\n", self.display_name),
+            0 => println!("Name:\n\t{}\n", self.name),
+            _ => println!("Name:\n\t{}\n", self.display_name),
         }
 
-        println!("Usage:\n   {}\n", self.usage);
-        println!("Version:\n   {}\n", self.version);
+        println!("Usage:\n\t{}\n", self.usage);
+        println!("Version:\n\t{}\n", self.version);
 
         println!("Commands:");
         for c in &self.commands {
-            println!("   {}", c.usage);
+            println!("\t{} : {}", c.name, c.usage);
+
+            match &c.flags {
+                Some(flags) => {
+                    for flag in flags {
+                        println!("\t\t{}", flag.usage)
+                    }
+                }
+                _ => ()
+            }
         }
     }
 
