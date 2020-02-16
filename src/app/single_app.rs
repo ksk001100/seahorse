@@ -66,12 +66,23 @@ impl SingleApp {
 
     fn help(&self) {
         match self.display_name.len() {
-            0 => println!("Name:\n   {}\n", self.name),
-            _ => println!("Name:\n   {}\n", self.display_name),
+            0 => println!("Name:\n\t{}\n", self.name),
+            _ => println!("Name:\n\t{}\n", self.display_name),
         }
 
-        println!("Usage:\n   {}\n", self.usage);
-        println!("Version:\n   {}\n", self.version);
+        println!("Usage:\n\t{}", self.usage);
+
+        match &self.flags {
+            Some(flags) => {
+                for flag in flags {
+                    println!("\t{}", flag.usage);
+                }
+                print!("\n");
+            }
+            _ => print!("\n")
+        }
+
+        println!("Version:\n\t{}\n", self.version);
     }
 }
 

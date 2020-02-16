@@ -3,7 +3,7 @@ use seahorse::{App, Command, color, Flag, FlagType, Context};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let display_name = color::magenta("
+    let name = color::magenta("
      ██████╗██╗     ██╗
     ██╔════╝██║     ██║
     ██║     ██║     ██║
@@ -12,16 +12,15 @@ fn main() {
     ╚═════╝╚══════╝╚═╝");
 
     let app = App::new()
-        .name("cli_tool")
-        .display_name(display_name)
-        .usage("cli_tool [command] [arg]")
+        .name(name)
+        .usage("multiple_app [command] [arg]")
         .version(env!("CARGO_PKG_VERSION"))
-        .commands(vec![command()]);
+        .commands(vec![hello_command()]);
 
     app.run(args);
 }
 
-fn action(c: &Context) {
+fn hello_action(c: &Context) {
     let name = &c.args[2];
     if c.bool_flag("bool") {
         println!("true");
@@ -37,13 +36,13 @@ fn action(c: &Context) {
     println!("Hello, {}", name);
 }
 
-fn command() -> Command {
+fn hello_command() -> Command {
     Command::new()
         .name("hello")
-        .usage("cli_tool hello [name]")
-        .action(action)
+        .usage("multiple_app hello [name]")
+        .action(hello_action)
         .flags(vec![
-            Flag::new("bool", "cli_tool hello [name] --bool", FlagType::Bool),
-            Flag::new("string", "cli_tool hello [name] --string [string]", FlagType::String),
+            Flag::new("bool", "multiple_app hello [name] --bool", FlagType::Bool),
+            Flag::new("string", "multiple_app hello [name] --string [string]", FlagType::String),
         ])
 }
