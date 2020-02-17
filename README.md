@@ -11,11 +11,12 @@
 
 A minimal CLI framework written in Rust
 
-## Using
+## Usage
+To use seahorse, add this to your Cargo.toml:
 
 ```toml
 [dependencies]
-seahorse = "0.4.4"
+seahorse = "0.4.6"
 ```
 
 ## Example
@@ -114,3 +115,12 @@ $ cargo run
 $ cargo run Bob
 $ cargo run Bob --bye
 ```
+
+## Contributing
+Please read [CONTRIBUTING.md](.github/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+
+## License
+This project is licensed under [MIT license](LICENSE)
+
+## Code of Conduct
+Contribution to the seahorse crate is organized under the terms of the Contributor Covenant, the maintainer of seahorse, @ksk001100, promises to intervene to uphold that code of conduct.
