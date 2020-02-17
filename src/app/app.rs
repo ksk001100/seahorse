@@ -2,11 +2,17 @@ use crate::Command;
 
 /// Multiple action application entry point
 pub struct App {
+    /// Application name
     pub name: String,
+    /// Application author
     pub author: String,
+    /// Application description
     pub description: Option<String>,
+    /// Application usage
     pub usage: String,
+    /// Application version
     pub version: String,
+    /// Application command vector
     pub commands: Vec<Command>,
 }
 

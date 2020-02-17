@@ -2,12 +2,19 @@ use crate::{Action, Context, Flag};
 
 /// Single action application entry point
 pub struct SingleApp {
+    /// Application name
     pub name: String,
+    /// Application author
     pub author: String,
+    /// Application description
     pub description: Option<String>,
+    /// Application usage
     pub usage: String,
+    /// Application version
     pub version: String,
+    /// Application action
     pub action: Action,
+    /// Action flags
     pub flags: Option<Vec<Flag>>
 }
 
