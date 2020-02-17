@@ -1,10 +1,17 @@
+/// `Flag` type.
+///
+/// Option flag struct
 #[derive(Clone)]
 pub struct Flag {
+    /// Flag name
     pub name: &'static str,
+    /// Flag usage
     pub usage: &'static str,
+    /// Flag type
     pub flag_type: FlagType,
 }
 
+/// `FlagType` enum
 #[derive(PartialOrd, PartialEq, Clone)]
 pub enum FlagType {
     Bool,
@@ -13,6 +20,7 @@ pub enum FlagType {
     Float,
 }
 
+/// `FlagValue` enum
 pub enum FlagValue {
     Bool(bool),
     String(String),
@@ -21,6 +29,16 @@ pub enum FlagValue {
 }
 
 impl Flag {
+    /// Create new instance of `Flag`
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{Flag, FlagType};
+    ///
+    /// let bool_flag = Flag::new("bool", "cli cmd [arg] --bool", FlagType::Bool);
+    /// let float_flag = Flag::new("float", "cli cmd [arg] --float [float]", FlagType::Float);
+    /// ```
     pub fn new(name: &'static str, usage: &'static str, flag_type: FlagType) -> Self {
         Self {
             name,
@@ -29,10 +47,12 @@ impl Flag {
         }
     }
 
+    /// Get flag position from `Vec<String>` command line argument
     fn option_index(&self, v: Vec<String>) -> Option<usize> {
         v.iter().position(|r| r == &format!("--{}", self.name))
     }
 
+    /// Get flag value
     pub fn value(&self, v: Vec<String>) -> Option<FlagValue> {
         match self.flag_type {
             FlagType::Bool => Some(FlagValue::Bool(v.contains(&format!("--{}", self.name)))),

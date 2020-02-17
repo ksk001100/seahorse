@@ -1,13 +1,20 @@
 use crate::{Action, Context, Flag};
 
+/// Single action application entry point
 pub struct SingleApp {
+    /// Application name
     pub name: String,
-    pub display_name: String,
+    /// Application author
     pub author: String,
+    /// Application description
     pub description: Option<String>,
+    /// Application usage
     pub usage: String,
+    /// Application version
     pub version: String,
+    /// Application action
     pub action: Action,
+    /// Action flags
     pub flags: Option<Vec<Flag>>
 }
 
@@ -15,7 +22,6 @@ impl Default for SingleApp {
     fn default() -> Self {
         Self {
             name: String::default(),
-            display_name: String::default(),
             author: String::default(),
             description: None,
             usage: String::default(),
@@ -27,50 +33,140 @@ impl Default for SingleApp {
 }
 
 impl SingleApp {
+    /// Create new instance of `SingleApp`
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::SingleApp;
+    ///
+    /// let app = SingleApp::new();
+    /// ```
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Set name of the app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::SingleApp;
+    ///
+    /// let app = SingleApp::new();
+    /// app.name("cli");
+    /// ```
     pub fn name<T: Into<String>>(mut self, name: T) -> Self {
         self.name = name.into();
         self
     }
 
-    pub fn display_name<T: Into<String>>(mut self, display_name: T) -> Self {
-        self.display_name = display_name.into();
-        self
-    }
-
+    /// Set author of the app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::SingleApp;
+    ///
+    /// let app = SingleApp::new();
+    /// app.author(env!("CARGO_PKG_AUTHORS"));
+    /// ```
     pub fn author<T: Into<String>>(mut self, author: T) -> Self {
         self.author = author.into();
         self
     }
 
+    /// Set description of the app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::SingleApp;
+    ///
+    /// let app = SingleApp::new();
+    /// app.description(env!("CARGO_PKG_DESCRIPTION"));
+    /// ```
     pub fn description<T: Into<String>>(mut self, description: T) -> Self {
         self.description = Some(description.into());
         self
     }
 
+    /// Set usage of the app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::SingleApp;
+    ///
+    /// let app = SingleApp::new();
+    /// app.usage("cli [arg]");
+    /// ```
     pub fn usage<T: Into<String>>(mut self, usage: T) -> Self {
         self.usage = usage.into();
         self
     }
 
+    /// Set version of the app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::SingleApp;
+    ///
+    /// let app = SingleApp::new();
+    /// app.version(env!("CARGO_PKG_VERSION"));
+    /// ```
     pub fn version<T: Into<String>>(mut self, version: T) -> Self {
         self.version = version.into();
         self
     }
 
+    /// Set action of the app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{SingleApp, Action, Context};
+    ///
+    /// let app = SingleApp::new();
+    /// let action: Action = |c: &Context| println!("{:?}", c.args);
+    /// app.action(action);
+    /// ```
     pub fn action(mut self, action: Action) -> Self {
         self.action = action;
         self
     }
 
+    /// Set flags of the app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{SingleApp, Flag, FlagType};
+    ///
+    /// let app = SingleApp::new();
+    /// let bool_flag = Flag::new("bool", "cli [arg] --bool", FlagType::Bool);
+    /// let int_flag = Flag::new("int", "cli [arg] --int [int number]", FlagType::Int);
+    ///
+    /// app.flags(vec![bool_flag, int_flag]);
+    /// ```
     pub fn flags(mut self, flags: Vec<Flag>) -> Self {
         self.flags = Some(flags);
         self
     }
 
+    /// Run app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use std::env;
+    /// use seahorse::SingleApp;
+    ///
+    /// let args: Vec<String> = env::args().collect();
+    /// let app = SingleApp::new();
+    /// app.run(args);
+    /// ```
     pub fn run(&self, args: Vec<String>) {
         match args.len() {
             1 => self.help(),
@@ -78,12 +174,10 @@ impl SingleApp {
         }
     }
 
+    /// Application help
+    /// Displays information about the application
     fn help(&self) {
-        match self.display_name.len() {
-            0 => println!("Name:\n\t{}\n", self.name),
-            _ => println!("Name:\n\t{}\n", self.display_name),
-        }
-
+        println!("Name:\n\t{}\n", self.name);
         println!("Author:\n\t{}\n", self.author);
 
         if let Some(description) = self.description.to_owned() {

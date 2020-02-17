@@ -1,12 +1,18 @@
 use crate::Command;
 
+/// Multiple action application entry point
 pub struct App {
+    /// Application name
     pub name: String,
-    pub display_name: String,
+    /// Application author
     pub author: String,
+    /// Application description
     pub description: Option<String>,
+    /// Application usage
     pub usage: String,
+    /// Application version
     pub version: String,
+    /// Application commands
     pub commands: Vec<Command>,
 }
 
@@ -14,7 +20,6 @@ impl Default for App {
     fn default() -> Self {
         Self {
             name: String::default(),
-            display_name: String::default(),
             author: String::default(),
             description: None,
             usage: String::default(),
@@ -25,45 +30,128 @@ impl Default for App {
 }
 
 impl App {
+    /// Create new instance of `App`
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::App;
+    ///
+    /// let app = App::new();
+    /// ```
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Set name of the app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::App;
+    ///
+    /// let app = App::new();
+    /// app.name("cli");
+    /// ```
     pub fn name<T: Into<String>>(mut self, name: T) -> Self {
         self.name = name.into();
         self
     }
 
-    pub fn display_name<T: Into<String>>(mut self, display_name: T) -> Self {
-        self.display_name = display_name.into();
-        self
-    }
-
+    /// Set author of the app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::App;
+    ///
+    /// let app = App::new();
+    /// app.author(env!("CARGO_PKG_AUTHORS"));
+    /// ```
     pub fn author<T: Into<String>>(mut self, author: T) -> Self {
         self.author = author.into();
         self
     }
 
+    /// Set description of the app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::App;
+    ///
+    /// let app = App::new();
+    /// app.description(env!("CARGO_PKG_DESCRIPTION"));
+    /// ```
     pub fn description<T: Into<String>>(mut self, description: T) -> Self {
         self.description = Some(description.into());
         self
     }
 
+    /// Set usage of the app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::App;
+    ///
+    /// let app = App::new();
+    /// app.usage("cli [command] [arg]");
+    /// ```
     pub fn usage<T: Into<String>>(mut self, usage: T) -> Self {
         self.usage = usage.into();
         self
     }
 
+    /// Set version of the app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::App;
+    ///
+    /// let app = App::new();
+    /// app.version(env!("CARGO_PKG_VERSION"));
+    /// ```
     pub fn version<T: Into<String>>(mut self, version: T) -> Self {
         self.version = version.into();
         self
     }
 
+    /// Set commands of the app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{App, Command};
+    ///
+    /// let app = App::new();
+    /// let command = Command::new()
+    ///     .name("hello")
+    ///     .usage("cli hello [arg]")
+    ///     .action(|c| println!("{:?}", c.args));
+    ///
+    /// app.commands(vec![
+    ///     command
+    /// ]);
+    /// ```
     pub fn commands(mut self, commands: Vec<Command>) -> Self {
         self.commands = commands;
         self
     }
 
+    /// Run app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use std::env;
+    /// use seahorse::App;
+    ///
+    /// let args: Vec<String> = env::args().collect();
+    /// let app = App::new();
+    /// app.run(args);
+    /// ```
     pub fn run(&self, args: Vec<String>) {
         match args.len() {
             1 => {
@@ -98,12 +186,10 @@ impl App {
         }
     }
 
+    /// Application help
+    /// Displays information about the application
     fn help(&self) {
-        match self.display_name.len() {
-            0 => println!("Name:\n\t{}\n", self.name),
-            _ => println!("Name:\n\t{}\n", self.display_name),
-        }
-
+        println!("name:\n\t{}\n", self.name);
         println!("Author:\n\t{}\n", self.author);
 
         if let Some(description) = self.description.to_owned() {
@@ -128,6 +214,8 @@ impl App {
         }
     }
 
+    /// Select command
+    /// Gets the Command that matches the string passed in the argument
     fn select_command(&self, cmd: &String) -> Option<&Command> {
         (&self.commands)
             .into_iter()
