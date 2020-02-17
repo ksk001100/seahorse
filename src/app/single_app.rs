@@ -177,11 +177,7 @@ impl SingleApp {
     /// Application help
     /// Displays information about the application
     fn help(&self) {
-        match self.display_name.len() {
-            0 => println!("Name:\n\t{}\n", self.name),
-            _ => println!("Name:\n\t{}\n", self.display_name),
-        }
-
+        println!("Name:\n\t{}\n", self.name);
         println!("Author:\n\t{}\n", self.author);
 
         if let Some(description) = self.description.to_owned() {
