@@ -1,4 +1,3 @@
-use std::env;
 use crate::Command;
 
 pub struct App {

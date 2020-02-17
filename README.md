@@ -12,7 +12,7 @@ A minimal CLI framework written in Rust
 
 ```toml
 [dependencies]
-seahorse = "0.4.3"
+seahorse = "0.4.4"
 ```
 
 ## Example
