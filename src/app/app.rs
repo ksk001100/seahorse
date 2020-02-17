@@ -16,10 +16,10 @@ impl Default for App {
         Self {
             name: String::default(),
             display_name: String::default(),
-            author: env!("CARGO_PKG_AUTHORS").to_owned(),
-            description: Some(env!("CARGO_PKG_DESCRIPTION").to_owned()),
+            author: String::default(),
+            description: None,
             usage: String::default(),
-            version: env!("CARGO_PKG_VERSION").to_owned(),
+            version: String::default(),
             commands: Vec::<Command>::default()
         }
     }

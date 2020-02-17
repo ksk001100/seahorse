@@ -16,10 +16,10 @@ impl Default for SingleApp {
         Self {
             name: String::default(),
             display_name: String::default(),
-            author: env!("CARGO_PKG_AUTHORS").to_owned(),
-            description: Some(env!("CARGO_PKG_DESCRIPTION").to_owned()),
+            author: String::default(),
+            description: None,
             usage: String::default(),
-            version: env!("CARGO_PKG_VERSION").to_owned(),
+            version: String::default(),
             action: |c: &Context| println!("{:?}", c.args),
             flags: None,
         }
@@ -135,6 +135,7 @@ mod tests {
         ]);
 
         assert_eq!(app.name, "test".to_string());
+        assert_eq!(app.description, None);
         assert_eq!(app.usage, "test [url]".to_string());
         assert_eq!(app.version, "0.0.1".to_string());
     }
