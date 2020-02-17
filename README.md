@@ -7,6 +7,8 @@
 ![lisence](https://img.shields.io/github/license/ksk001100/seahorse.svg)
 [![travis build](https://travis-ci.org/ksk001100/seahorse.svg?branch=master)](https://travis-ci.org/ksk001100/seahorse)
 
+![Logo](images/logo.png)
+
 A minimal CLI framework written in Rust
 
 ## Using
