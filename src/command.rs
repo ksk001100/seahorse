@@ -1,9 +1,14 @@
 use crate::{Action, Context, Flag};
 
+/// Application command type
 pub struct Command {
+    /// Command name
     pub name: String,
+    /// Command usage
     pub usage: String,
+    /// Command action
     pub action: Action,
+    /// Action flags
     pub flags: Option<Vec<Flag>>,
 }
 
@@ -19,30 +24,85 @@ impl Default for Command {
 }
 
 impl Command {
+    /// Create new instance of Command
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::Command;
+    ///
+    /// let command = Command::new();
+    /// ```
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Set name of the command
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::Command;
+    ///
+    /// let command = Command::new();
+    /// command.name("cmd");
+    /// ```
     pub fn name<T: Into<String>>(mut self, name: T) -> Self {
         self.name = name.into();
         self
     }
 
+    /// Set usage of the command
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::Command;
+    ///
+    /// let command = Command::new();
+    /// command.usage("cli cmd [arg]");
+    /// ```
     pub fn usage<T: Into<String>>(mut self, usage: T) -> Self {
         self.usage = usage.into();
         self
     }
 
+    /// Set action of the command
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{Command, Context, Action};
+    ///
+    /// let command = Command::new();
+    /// let action: Action = |c: &Context| println!("{:?}", c.args);
+    /// command.action(action);
+    /// ```
     pub fn action(mut self, action: Action) -> Self {
         self.action = action;
         self
     }
 
+    /// Set flags of the command
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{Command, Flag, FlagType};
+    ///
+    /// let command = Command::new();
+    /// command.flags(vec![
+    ///     Flag::new("bool", "cli cmd [arg] --bool", FlagType::Bool),
+    ///     Flag::new("string", "cli cmd [arg] --string [string]", FlagType::String)
+    /// ]);
+    /// ```
     pub fn flags(mut self, flags: Vec<Flag>) -> Self {
         self.flags = Some(flags);
         self
     }
 
+    /// Run command
+    /// Call this function only from App
     pub fn run(&self, v: Vec<String>) {
         (self.action)(&Context::new(v.clone(), self.flags.clone()))
     }

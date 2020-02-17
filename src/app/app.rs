@@ -12,7 +12,7 @@ pub struct App {
     pub usage: String,
     /// Application version
     pub version: String,
-    /// Application command vector
+    /// Application commands
     pub commands: Vec<Command>,
 }
 
