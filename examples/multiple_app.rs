@@ -13,6 +13,8 @@ fn main() {
 
     let app = App::new()
         .name(name)
+        .author(env!("CARGO_PKG_AUTHORS"))
+        .description(env!("CARGO_PKG_DESCRIPTION"))
         .usage("multiple_app [command] [arg]")
         .version(env!("CARGO_PKG_VERSION"))
         .commands(vec![hello_command()]);
