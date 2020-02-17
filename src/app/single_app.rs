@@ -3,6 +3,8 @@ use crate::{Action, Context, Flag};
 pub struct SingleApp {
     pub name: String,
     pub display_name: String,
+    pub author: String,
+    pub description: Option<String>,
     pub usage: String,
     pub version: String,
     pub action: Action,
@@ -12,10 +14,12 @@ pub struct SingleApp {
 impl Default for SingleApp {
     fn default() -> Self {
         Self {
-            name: "".to_string(),
-            display_name: "".to_string(),
-            usage: "".to_string(),
-            version: "".to_string(),
+            name: String::default(),
+            display_name: String::default(),
+            author: env!("CARGO_PKG_AUTHORS").to_owned(),
+            description: Some(env!("CARGO_PKG_DESCRIPTION").to_owned()),
+            usage: String::default(),
+            version: env!("CARGO_PKG_VERSION").to_owned(),
             action: |c: &Context| println!("{:?}", c.args),
             flags: None,
         }
@@ -34,6 +38,16 @@ impl SingleApp {
 
     pub fn display_name<T: Into<String>>(mut self, display_name: T) -> Self {
         self.display_name = display_name.into();
+        self
+    }
+
+    pub fn author<T: Into<String>>(mut self, author: T) -> Self {
+        self.author = author.into();
+        self
+    }
+
+    pub fn description<T: Into<String>>(mut self, description: T) -> Self {
+        self.description = Some(description.into());
         self
     }
 
@@ -68,6 +82,12 @@ impl SingleApp {
         match self.display_name.len() {
             0 => println!("Name:\n\t{}\n", self.name),
             _ => println!("Name:\n\t{}\n", self.display_name),
+        }
+
+        println!("Author:\n\t{}\n", self.author);
+
+        if let Some(description) = self.description.to_owned() {
+            println!("Description:\n\t{}\n", description);
         }
 
         println!("Usage:\n\t{}", self.usage);
