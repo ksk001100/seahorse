@@ -1,4 +1,5 @@
-/// `Flag` type
+/// `Flag` type.
+///
 /// Option flag struct
 #[derive(Clone)]
 pub struct Flag {

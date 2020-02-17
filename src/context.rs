@@ -1,6 +1,7 @@
 use crate::{Flag, FlagValue, FlagType};
 
 /// `Context` type
+///
 /// This type is used only for `Action` arguments
 pub struct Context {
     /// `Vec<String>` with flags and flag values ​​removed from command line arguments
