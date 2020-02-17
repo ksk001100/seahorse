@@ -1,12 +1,28 @@
+use std::env;
 use crate::Command;
 
-#[derive(Default)]
 pub struct App {
     pub name: String,
     pub display_name: String,
+    pub author: String,
+    pub description: Option<String>,
     pub usage: String,
     pub version: String,
     pub commands: Vec<Command>,
+}
+
+impl Default for App {
+    fn default() -> Self {
+        Self {
+            name: String::default(),
+            display_name: String::default(),
+            author: String::default(),
+            description: None,
+            usage: String::default(),
+            version: String::default(),
+            commands: Vec::<Command>::default()
+        }
+    }
 }
 
 impl App {
@@ -21,6 +37,16 @@ impl App {
 
     pub fn display_name<T: Into<String>>(mut self, display_name: T) -> Self {
         self.display_name = display_name.into();
+        self
+    }
+
+    pub fn author<T: Into<String>>(mut self, author: T) -> Self {
+        self.author = author.into();
+        self
+    }
+
+    pub fn description<T: Into<String>>(mut self, description: T) -> Self {
+        self.description = Some(description.into());
         self
     }
 
@@ -77,6 +103,12 @@ impl App {
         match self.display_name.len() {
             0 => println!("Name:\n\t{}\n", self.name),
             _ => println!("Name:\n\t{}\n", self.display_name),
+        }
+
+        println!("Author:\n\t{}\n", self.author);
+
+        if let Some(description) = self.description.to_owned() {
+            println!("Description:\n\t{}\n", description);
         }
 
         println!("Usage:\n\t{}\n", self.usage);
@@ -137,6 +169,8 @@ mod tests {
             ]);
         let app = App::new()
             .name("test")
+            .author("Author <author@example.com>")
+            .description("This is a great tool.")
             .usage("test [command] [arg]")
             .version("0.0.1")
             .commands(vec![c]);
@@ -156,6 +190,8 @@ mod tests {
 
         assert_eq!(app.name, "test".to_string());
         assert_eq!(app.usage, "test [command] [arg]".to_string());
+        assert_eq!(app.author, "Author <author@example.com>".to_string());
+        assert_eq!(app.description, Some("This is a great tool.".to_string()));
         assert_eq!(app.version, "0.0.1".to_string());
     }
 }

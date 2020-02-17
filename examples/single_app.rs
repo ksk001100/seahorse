@@ -13,6 +13,8 @@ fn main() {
 
     let app = SingleApp::new()
         .name(name)
+        .author(env!("CARGO_PKG_AUTHORS"))
+        .description(env!("CARGO_PKG_DESCRIPTION"))
         .usage("single_app [args]")
         .version(env!("CARGO_PKG_VERSION"))
         .action(action)

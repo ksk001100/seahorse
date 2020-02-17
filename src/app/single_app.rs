@@ -3,6 +3,8 @@ use crate::{Action, Context, Flag};
 pub struct SingleApp {
     pub name: String,
     pub display_name: String,
+    pub author: String,
+    pub description: Option<String>,
     pub usage: String,
     pub version: String,
     pub action: Action,
@@ -12,10 +14,12 @@ pub struct SingleApp {
 impl Default for SingleApp {
     fn default() -> Self {
         Self {
-            name: "".to_string(),
-            display_name: "".to_string(),
-            usage: "".to_string(),
-            version: "".to_string(),
+            name: String::default(),
+            display_name: String::default(),
+            author: String::default(),
+            description: None,
+            usage: String::default(),
+            version: String::default(),
             action: |c: &Context| println!("{:?}", c.args),
             flags: None,
         }
@@ -34,6 +38,16 @@ impl SingleApp {
 
     pub fn display_name<T: Into<String>>(mut self, display_name: T) -> Self {
         self.display_name = display_name.into();
+        self
+    }
+
+    pub fn author<T: Into<String>>(mut self, author: T) -> Self {
+        self.author = author.into();
+        self
+    }
+
+    pub fn description<T: Into<String>>(mut self, description: T) -> Self {
+        self.description = Some(description.into());
         self
     }
 
@@ -68,6 +82,12 @@ impl SingleApp {
         match self.display_name.len() {
             0 => println!("Name:\n\t{}\n", self.name),
             _ => println!("Name:\n\t{}\n", self.display_name),
+        }
+
+        println!("Author:\n\t{}\n", self.author);
+
+        if let Some(description) = self.description.to_owned() {
+            println!("Description:\n\t{}\n", description);
         }
 
         println!("Usage:\n\t{}", self.usage);
@@ -115,6 +135,7 @@ mod tests {
         ]);
 
         assert_eq!(app.name, "test".to_string());
+        assert_eq!(app.description, None);
         assert_eq!(app.usage, "test [url]".to_string());
         assert_eq!(app.version, "0.0.1".to_string());
     }
