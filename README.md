@@ -1,10 +1,11 @@
 # seahorse
 
 [![crates.io](https://img.shields.io/crates/v/seahorse.svg)](https://crates.io/crates/seahorse)
-![](https://img.shields.io/github/release/ksk001100/seahorse.svg)
-![](https://img.shields.io/github/issues/ksk001100/seahorse.svg)
-![](https://img.shields.io/github/forks/ksk001100/seahorse.svg)
-![](https://img.shields.io/github/license/ksk001100/seahorse.svg)
+![releases count](https://img.shields.io/github/release/ksk001100/seahorse.svg)
+![issues count](https://img.shields.io/github/issues/ksk001100/seahorse.svg)
+![forks count](https://img.shields.io/github/forks/ksk001100/seahorse.svg)
+![lisence](https://img.shields.io/github/license/ksk001100/seahorse.svg)
+[![travis build](https://travis-ci.org/ksk001100/seahorse.svg?branch=master)](https://travis-ci.org/ksk001100/seahorse)
 
 A minimal CLI framework written in Rust
 
