@@ -15,6 +15,9 @@ A minimal CLI framework written in Rust
 - Easy to use
 - No dependencies
 
+## Documentation
+[Here](https://docs.rs/seahorse)
+
 ## Usage
 To use seahorse, add this to your Cargo.toml:
 
