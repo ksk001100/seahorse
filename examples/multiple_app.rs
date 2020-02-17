@@ -3,16 +3,8 @@ use seahorse::{App, Command, color, Flag, FlagType, Context};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let name = color::magenta("
-     ██████╗██╗     ██╗
-    ██╔════╝██║     ██║
-    ██║     ██║     ██║
-    ██║     ██║     ██║
-    ╚██████╗███████╗██║
-    ╚═════╝╚══════╝╚═╝");
-
     let app = App::new()
-        .name(name)
+        .name(color::yellow("multiple_app"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .description(env!("CARGO_PKG_DESCRIPTION"))
         .usage("multiple_app [command] [arg]")
@@ -24,18 +16,16 @@ fn main() {
 
 fn hello_action(c: &Context) {
     let name = &c.args[2];
-    if c.bool_flag("bool") {
-        println!("true");
+    if c.bool_flag("bye") {
+        println!("Bye, {}", name);
     } else {
-        println!("false");
+        println!("Hello, {}", name);
     }
 
-    match c.string_flag("string") {
-        Some(s) => println!("{}", s),
-        None => println!("string none...")
+    match c.int_flag("age") {
+        Some(age) => println!("{} is {} years old", name, age),
+        None => println!("I don't know {}'s age", name)
     }
-
-    println!("Hello, {}", name);
 }
 
 fn hello_command() -> Command {
@@ -44,7 +34,7 @@ fn hello_command() -> Command {
         .usage("multiple_app hello [name]")
         .action(hello_action)
         .flags(vec![
-            Flag::new("bool", "multiple_app hello [name] --bool", FlagType::Bool),
-            Flag::new("string", "multiple_app hello [name] --string [string]", FlagType::String),
+            Flag::new("bye", "multiple_app hello [name] --bye", FlagType::Bool),
+            Flag::new("age", "multiple_app hello [name] --age [age]", FlagType::Int)
         ])
 }
