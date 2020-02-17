@@ -33,7 +33,7 @@ impl Default for SingleApp {
 }
 
 impl SingleApp {
-    /// Create new instance of SingleApp
+    /// Create new instance of `SingleApp`
     ///
     /// Example
     ///

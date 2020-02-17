@@ -24,7 +24,7 @@ impl Default for Command {
 }
 
 impl Command {
-    /// Create new instance of Command
+    /// Create new instance of `Command`
     ///
     /// Example
     ///
@@ -102,7 +102,7 @@ impl Command {
     }
 
     /// Run command
-    /// Call this function only from App
+    /// Call this function only from `App`
     pub fn run(&self, v: Vec<String>) {
         (self.action)(&Context::new(v.clone(), self.flags.clone()))
     }

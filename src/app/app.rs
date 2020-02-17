@@ -30,7 +30,7 @@ impl Default for App {
 }
 
 impl App {
-    /// Create new instance of App
+    /// Create new instance of `App`
     ///
     /// Example
     ///
