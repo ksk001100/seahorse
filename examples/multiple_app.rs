@@ -15,7 +15,7 @@ fn main() {
 }
 
 fn hello_action(c: &Context) {
-    let name = &c.args[2];
+    let name = &c.args[1];
     if c.bool_flag("bye") {
         println!("Bye, {}", name);
     } else {
