@@ -56,24 +56,18 @@ impl Flag {
     pub fn value(&self, v: &Vec<String>) -> Option<FlagValue> {
         match self.flag_type {
             FlagType::Bool => Some(FlagValue::Bool(v.contains(&format!("--{}", self.name)))),
-            FlagType::String => {
-                match self.option_index(&v) {
-                    Some(index) => Some(FlagValue::String(v[index + 1].to_owned())),
-                    None => None
-                }
-            }
-            FlagType::Int => {
-                match self.option_index(&v) {
-                    Some(index) => Some(FlagValue::Int(v[index + 1].parse::<isize>().unwrap())),
-                    None => None
-                }
-            }
-            FlagType::Float => {
-                match self.option_index(&v) {
-                    Some(index) => Some(FlagValue::Float(v[index + 1].parse::<f64>().unwrap())),
-                    None => None
-                }
-            }
+            FlagType::String => match self.option_index(&v) {
+                Some(index) => Some(FlagValue::String(v[index + 1].to_owned())),
+                None => None,
+            },
+            FlagType::Int => match self.option_index(&v) {
+                Some(index) => Some(FlagValue::Int(v[index + 1].parse::<isize>().unwrap())),
+                None => None,
+            },
+            FlagType::Float => match self.option_index(&v) {
+                Some(index) => Some(FlagValue::Float(v[index + 1].parse::<f64>().unwrap())),
+                None => None,
+            },
         }
     }
 }
@@ -94,7 +88,7 @@ mod tests {
 
         match bool_flag.value(&v) {
             Some(FlagValue::Bool(val)) => assert!(val),
-            _ => assert!(false)
+            _ => assert!(false),
         }
     }
 
@@ -111,7 +105,7 @@ mod tests {
 
         match string_flag.value(&v) {
             Some(FlagValue::String(val)) => assert_eq!("test".to_string(), val),
-            _ => assert!(false)
+            _ => assert!(false),
         }
     }
 
@@ -128,7 +122,7 @@ mod tests {
 
         match int_flag.value(&v) {
             Some(FlagValue::Int(val)) => assert_eq!(100, val),
-            _ => assert!(false)
+            _ => assert!(false),
         }
     }
 
@@ -145,7 +139,7 @@ mod tests {
 
         match float_flag.value(&v) {
             Some(FlagValue::Float(val)) => assert_eq!(1.23, val),
-            _ => assert!(false)
+            _ => assert!(false),
         }
     }
 }

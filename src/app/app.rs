@@ -24,7 +24,7 @@ impl Default for App {
             description: None,
             usage: String::default(),
             version: String::default(),
-            commands: Vec::<Command>::default()
+            commands: Vec::<Command>::default(),
         }
     }
 }
@@ -209,7 +209,7 @@ impl App {
                         println!("\t\t{}", flag.usage)
                     }
                 }
-                _ => ()
+                _ => (),
             }
         }
     }
@@ -233,15 +233,15 @@ mod tests {
             assert_eq!(true, c.bool_flag("bool"));
             match c.string_flag("string") {
                 Some(flag) => assert_eq!("string".to_string(), flag),
-                None => assert!(false, "string test false...")
+                None => assert!(false, "string test false..."),
             }
             match c.int_flag("int") {
                 Some(flag) => assert_eq!(100, flag),
-                None => assert!(false, "int test false...")
+                None => assert!(false, "int test false..."),
             }
             match c.float_flag("float") {
                 Some(flag) => assert_eq!(1.23, flag),
-                None => assert!(false, "float test false...")
+                None => assert!(false, "float test false..."),
             }
         };
         let c = Command::new()
@@ -250,9 +250,17 @@ mod tests {
             .action(a)
             .flags(vec![
                 Flag::new("bool", "test hello [args] --bool", FlagType::Bool),
-                Flag::new("string", "test hello [args] --int [int value]", FlagType::String),
+                Flag::new(
+                    "string",
+                    "test hello [args] --int [int value]",
+                    FlagType::String,
+                ),
                 Flag::new("int", "test hello [args] --int [int value]", FlagType::Int),
-                Flag::new("float", "test hello [args] --int [int value]", FlagType::Float),
+                Flag::new(
+                    "float",
+                    "test hello [args] --int [int value]",
+                    FlagType::Float,
+                ),
             ]);
         let app = App::new()
             .name("test")

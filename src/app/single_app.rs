@@ -15,7 +15,7 @@ pub struct SingleApp {
     /// Application action
     pub action: Action,
     /// Action flags
-    pub flags: Option<Vec<Flag>>
+    pub flags: Option<Vec<Flag>>,
 }
 
 impl Default for SingleApp {
@@ -170,7 +170,7 @@ impl SingleApp {
     pub fn run(&self, args: Vec<String>) {
         match args.len() {
             1 => self.help(),
-            _ => (self.action)(&Context::new(args[1..].to_vec(), self.flags.clone()))
+            _ => (self.action)(&Context::new(args[1..].to_vec(), self.flags.clone())),
         }
     }
 
@@ -193,7 +193,7 @@ impl SingleApp {
                 }
                 print!("\n");
             }
-            _ => print!("\n")
+            _ => print!("\n"),
         }
 
         println!("Version:\n\t{}\n", self.version);
@@ -202,7 +202,7 @@ impl SingleApp {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Action, Context, SingleApp, Flag, FlagType};
+    use crate::{Action, Context, Flag, FlagType, SingleApp};
 
     #[test]
     fn single_app_test() {
@@ -218,14 +218,12 @@ mod tests {
             .usage("test [url]")
             .version("0.0.1")
             .action(a)
-            .flags(vec![
-                Flag::new("bool", "test [url] --bool", FlagType::Bool)
-            ]);
+            .flags(vec![Flag::new("bool", "test [url] --bool", FlagType::Bool)]);
 
         app.run(vec![
             "test".to_string(),
             "http://google.com".to_string(),
-            "--bool".to_string()
+            "--bool".to_string(),
         ]);
 
         assert_eq!(app.name, "test".to_string());
