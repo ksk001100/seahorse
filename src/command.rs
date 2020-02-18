@@ -121,7 +121,7 @@ mod tests {
             .action(a)
             .flags(vec![Flag::new("t", "t", FlagType::Bool)]);
 
-        &c.flags.unwrap()[0].value(vec!["--hoge".to_string()]);
+        &c.flags.unwrap()[0].value(&vec!["--hoge".to_string()]);
 
         assert_eq!(c.name, "hello".to_string());
         assert_eq!(c.usage, "test hello user".to_string());

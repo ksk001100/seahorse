@@ -48,29 +48,29 @@ impl Flag {
     }
 
     /// Get flag position from `Vec<String>` command line argument
-    fn option_index(&self, v: Vec<String>) -> Option<usize> {
+    fn option_index(&self, v: &Vec<String>) -> Option<usize> {
         v.iter().position(|r| r == &format!("--{}", self.name))
     }
 
     /// Get flag value
-    pub fn value(&self, v: Vec<String>) -> Option<FlagValue> {
+    pub fn value(&self, v: &Vec<String>) -> Option<FlagValue> {
         match self.flag_type {
             FlagType::Bool => Some(FlagValue::Bool(v.contains(&format!("--{}", self.name)))),
             FlagType::String => {
-                match self.option_index(v.clone()) {
-                    Some(index) => Some(FlagValue::String(v[index + 1].clone())),
+                match self.option_index(&v) {
+                    Some(index) => Some(FlagValue::String(v[index + 1].to_owned())),
                     None => None
                 }
             }
             FlagType::Int => {
-                match self.option_index(v.clone()) {
-                    Some(index) => Some(FlagValue::Int(v[index + 1].clone().parse::<isize>().unwrap())),
+                match self.option_index(&v) {
+                    Some(index) => Some(FlagValue::Int(v[index + 1].parse::<isize>().unwrap())),
                     None => None
                 }
             }
             FlagType::Float => {
-                match self.option_index(v.clone()) {
-                    Some(index) => Some(FlagValue::Float(v[index + 1].clone().parse::<f64>().unwrap())),
+                match self.option_index(&v) {
+                    Some(index) => Some(FlagValue::Float(v[index + 1].parse::<f64>().unwrap())),
                     None => None
                 }
             }
@@ -92,7 +92,7 @@ mod tests {
             "--bool".to_string(),
         ];
 
-        match bool_flag.value(v) {
+        match bool_flag.value(&v) {
             Some(FlagValue::Bool(val)) => assert!(val),
             _ => assert!(false)
         }
@@ -109,7 +109,7 @@ mod tests {
             "test".to_string(),
         ];
 
-        match string_flag.value(v) {
+        match string_flag.value(&v) {
             Some(FlagValue::String(val)) => assert_eq!("test".to_string(), val),
             _ => assert!(false)
         }
@@ -126,7 +126,7 @@ mod tests {
             "100".to_string(),
         ];
 
-        match int_flag.value(v) {
+        match int_flag.value(&v) {
             Some(FlagValue::Int(val)) => assert_eq!(100, val),
             _ => assert!(false)
         }
@@ -143,7 +143,7 @@ mod tests {
             "1.23".to_string(),
         ];
 
-        match float_flag.value(v) {
+        match float_flag.value(&v) {
             Some(FlagValue::Float(val)) => assert_eq!(1.23, val),
             _ => assert!(false)
         }
