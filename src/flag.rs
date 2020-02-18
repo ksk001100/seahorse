@@ -52,6 +52,7 @@ impl Flag {
         v.iter().position(|r| r == &format!("--{}", self.name))
     }
 
+    /// Get flag value
     pub fn value(&self, v: &Vec<String>) -> Option<FlagValue> {
         match self.flag_type {
             FlagType::Bool => Some(FlagValue::Bool(v.contains(&format!("--{}", self.name)))),
