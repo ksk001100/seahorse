@@ -55,7 +55,7 @@ fn main() {
 }
 
 fn hello_action(c: &Context) {
-    let name = &c.args[2];
+    let name = &c.args[1];
     if c.bool_flag("bye") {
         println!("Bye, {}", name);
     } else {
@@ -89,11 +89,11 @@ $ cargo run John --age 30
 ### Single action application
 ```rust
 use std::env;
-use seahorse::{SingleApp, color, Context, Flag, FlagType};
+use seahorse::{App, color, Context, Flag, FlagType};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let app = SingleApp::new()
+    let app = App::new()
         .name("single_app")
         .author(env!("CARGO_PKG_AUTHORS"))
         .description(env!("CARGO_PKG_DESCRIPTION"))
