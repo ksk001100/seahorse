@@ -1,4 +1,4 @@
-use crate::{Flag, FlagValue, FlagType};
+use crate::{Flag, FlagType, FlagValue};
 
 /// `Context` type
 ///
@@ -7,7 +7,7 @@ pub struct Context {
     /// `Vec<String>` with flags and flag values ​​removed from command line arguments
     pub args: Vec<String>,
     /// `Vec` that stores flag name and flag value as tuple
-    flags: Option<Vec<(String, Option<FlagValue>)>>
+    flags: Option<Vec<(String, Option<FlagValue>)>>,
 }
 
 impl Context {
@@ -31,7 +31,10 @@ impl Context {
             Some(flags) => {
                 for flag in flags {
                     if parsed_args.contains(&format!("--{}", flag.name)) {
-                        let index = parsed_args.iter().position(|arg| *arg == format!("--{}", flag.name)).unwrap();
+                        let index = parsed_args
+                            .iter()
+                            .position(|arg| *arg == format!("--{}", flag.name))
+                            .unwrap();
                         parsed_args.remove(index);
                         if flag.flag_type != FlagType::Bool {
                             parsed_args.remove(index);
@@ -41,15 +44,19 @@ impl Context {
                 }
                 Some(v)
             }
-            None => None
+            None => None,
         };
 
-        Self { args: parsed_args, flags: flags_val }
+        Self {
+            args: parsed_args,
+            flags: flags_val,
+        }
     }
 
     /// Get flag value
     fn option_flag_value(&self, name: &str) -> Option<&FlagValue> {
-        self.flags.as_ref()
+        self.flags
+            .as_ref()
             .and_then(|flags| flags.into_iter().find(|flag| flag.0 == name.to_string()))
             .and_then(|flag| flag.1.as_ref())
     }
@@ -72,10 +79,8 @@ impl Context {
     /// ```
     pub fn bool_flag(&self, name: &str) -> bool {
         match self.option_flag_value(name) {
-            Some(FlagValue::Bool(val)) => {
-                (*val).clone()
-            },
-            _ => false
+            Some(FlagValue::Bool(val)) => (*val).clone(),
+            _ => false,
         }
     }
 
@@ -99,7 +104,7 @@ impl Context {
     pub fn string_flag(&self, name: &str) -> Option<String> {
         match self.option_flag_value(name) {
             Some(FlagValue::String(val)) => Some((&val).to_string()),
-            _ => None
+            _ => None,
         }
     }
 
@@ -123,7 +128,7 @@ impl Context {
     pub fn int_flag(&self, name: &str) -> Option<isize> {
         match self.option_flag_value(name) {
             Some(FlagValue::Int(val)) => Some(val.clone()),
-            _ => None
+            _ => None,
         }
     }
 
@@ -147,7 +152,7 @@ impl Context {
     pub fn float_flag(&self, name: &str) -> Option<f64> {
         match self.option_flag_value(name) {
             Some(FlagValue::Float(val)) => Some(val.clone()),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -173,7 +178,7 @@ mod tests {
             Flag::new("bool", "", FlagType::Bool),
             Flag::new("string", "", FlagType::String),
             Flag::new("int", "", FlagType::Int),
-            Flag::new("float", "", FlagType::Float)
+            Flag::new("float", "", FlagType::Float),
         ];
         let context = Context::new(args, Some(flags));
 
@@ -181,17 +186,17 @@ mod tests {
 
         match context.string_flag("string") {
             Some(val) => assert_eq!("test".to_string(), val),
-            _ => assert!(false)
+            _ => assert!(false),
         }
 
         match context.int_flag("int") {
             Some(val) => assert_eq!(100, val),
-            _ => assert!(false)
+            _ => assert!(false),
         }
 
         match context.float_flag("float") {
             Some(val) => assert_eq!(1.23, val),
-            _ => assert!(false)
+            _ => assert!(false),
         }
     }
 }

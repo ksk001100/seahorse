@@ -1,5 +1,5 @@
+use seahorse::{color, App, Command, Context, Flag, FlagType};
 use std::env;
-use seahorse::{App, Command, color, Flag, FlagType, Context};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -24,7 +24,7 @@ fn hello_action(c: &Context) {
 
     match c.int_flag("age") {
         Some(age) => println!("{} is {} years old", name, age),
-        None => println!("I don't know {}'s age", name)
+        None => println!("I don't know {}'s age", name),
     }
 }
 
@@ -35,6 +35,10 @@ fn hello_command() -> Command {
         .action(hello_action)
         .flags(vec![
             Flag::new("bye", "multiple_app hello [name] --bye", FlagType::Bool),
-            Flag::new("age", "multiple_app hello [name] --age [age]", FlagType::Int)
+            Flag::new(
+                "age",
+                "multiple_app hello [name] --age [age]",
+                FlagType::Int,
+            ),
         ])
 }
