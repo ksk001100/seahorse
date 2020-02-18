@@ -37,7 +37,7 @@ impl Context {
                             parsed_args.remove(index);
                         }
                     }
-                    v.push((flag.name.to_string(), flag.value(args.clone())))
+                    v.push((flag.name.to_string(), flag.value(&args)))
                 }
                 Some(v)
             }
