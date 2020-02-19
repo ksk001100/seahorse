@@ -252,7 +252,7 @@ impl App {
             &self.flags.is_some(),
         ) {
             (true, false, false) => AppType::Multiple,
-            (false, true, true) => AppType::Single,
+            (false, true, _) => AppType::Single,
             _ => AppType::Undefined,
         }
     }
