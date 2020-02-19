@@ -1,0 +1,51 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  test:
+    name: Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        build: [stable, beta, nightly, macos, msrv]
+        include:
+          - build: stable
+            os: ubuntu-latest
+            rust: stable
+            allow_failure: false
+          - build: beta
+            os: ubuntu-latest
+            rust: beta
+            allow_failure: false
+          - build: nightly
+            os: ubuntu-latest
+            rust: nightly
+            allow_failure: true
+          - build: macos
+            os: macos-latest
+            rust: stable
+            allow_failure: false
+          - build: msrv
+            os: ubuntu-latest
+            rust: 1.35.0
+            allow_failure: false
+    steps:
+      - uses: actions/checkout@master
+      - name: Install Rust
+        run: rustup update ${{ matrix.rust }} && rustup default ${{ matrix.rust }}
+      - name: Build and run tests
+        run: cargo test
+        continue-on-error: ${{ matrix.allow_failure }}
+
+  rustfmt:
+    name: Rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Install Rust
+        run: rustup update stable && rustup default stable && rustup component add rustfmt
+      - run: cargo fmt -- --check
