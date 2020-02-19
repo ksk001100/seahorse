@@ -4,7 +4,7 @@
 ![releases count](https://img.shields.io/github/release/ksk001100/seahorse.svg)
 ![issues count](https://img.shields.io/github/issues/ksk001100/seahorse.svg)
 ![forks count](https://img.shields.io/github/forks/ksk001100/seahorse.svg)
-![lisence](https://img.shields.io/github/license/ksk001100/seahorse.svg)
+![license](https://img.shields.io/github/license/ksk001100/seahorse.svg)
 ![github actions CI](https://github.com/ksk001100/seahorse/workflows/CI/badge.svg?branch=master)
 
 ![Logo](https://repository-images.githubusercontent.com/226840735/d3e77500-51a0-11ea-845e-3cc87714278b)
@@ -55,7 +55,7 @@ fn main() {
 }
 
 fn hello_action(c: &Context) {
-    let name = &c.args[2];
+    let name = &c.args[1];
     if c.bool_flag("bye") {
         println!("Bye, {}", name);
     } else {
@@ -89,11 +89,11 @@ $ cargo run John --age 30
 ### Single action application
 ```rust
 use std::env;
-use seahorse::{SingleApp, color, Context, Flag, FlagType};
+use seahorse::{App, color, Context, Flag, FlagType};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let app = SingleApp::new()
+    let app = App::new()
         .name("single_app")
         .author(env!("CARGO_PKG_AUTHORS"))
         .description(env!("CARGO_PKG_DESCRIPTION"))

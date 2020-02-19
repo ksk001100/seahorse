@@ -1,4 +1,4 @@
-use seahorse::{color, Context, Flag, FlagType, SingleApp};
+use seahorse::{color, App, Context, Flag, FlagType};
 use std::env;
 
 fn main() {
@@ -13,7 +13,7 @@ fn main() {
      ╚═════╝╚══════╝╚═╝",
     );
 
-    let app = SingleApp::new()
+    let app = App::new()
         .name(name)
         .author(env!("CARGO_PKG_AUTHORS"))
         .description(env!("CARGO_PKG_DESCRIPTION"))
