@@ -246,7 +246,11 @@ impl App {
 
     /// Get application type
     fn app_type(&self) -> AppType {
-        match (&self.commands.is_some(), &self.action.is_some(), &self.flags.is_some()) {
+        match (
+            &self.commands.is_some(),
+            &self.action.is_some(),
+            &self.flags.is_some(),
+        ) {
             (true, false, false) => AppType::Multiple,
             (false, true, true) => AppType::Single,
             _ => AppType::Undefined,
