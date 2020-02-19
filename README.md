@@ -4,7 +4,7 @@
 ![releases count](https://img.shields.io/github/release/ksk001100/seahorse.svg)
 ![issues count](https://img.shields.io/github/issues/ksk001100/seahorse.svg)
 ![forks count](https://img.shields.io/github/forks/ksk001100/seahorse.svg)
-![lisence](https://img.shields.io/github/license/ksk001100/seahorse.svg)
+![license](https://img.shields.io/github/license/ksk001100/seahorse.svg)
 ![github actions CI](https://github.com/ksk001100/seahorse/workflows/CI/badge.svg?branch=master)
 
 ![Logo](https://repository-images.githubusercontent.com/226840735/d3e77500-51a0-11ea-845e-3cc87714278b)
