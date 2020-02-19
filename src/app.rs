@@ -260,19 +260,18 @@ impl App {
     /// Application help
     /// Displays information about the application
     fn help(&self) {
-        println!("name:\n\t{}\n", self.name);
+        println!("Name:\n\t{}\n", self.name);
         println!("Author:\n\t{}\n", self.author);
 
         if let Some(description) = self.description.to_owned() {
             println!("Description:\n\t{}\n", description);
         }
 
-        println!("Usage:\n\t{}\n", self.usage);
-        println!("Version:\n\t{}\n", self.version);
+        println!("Usage:\n\t{}", self.usage);
 
         match &self.commands {
             Some(commands) => {
-                println!("Commands:");
+                println!("\nCommands:");
                 for c in commands {
                     println!("\t{} : {}", c.name, c.usage);
 
@@ -282,12 +281,22 @@ impl App {
                                 println!("\t\t{}", flag.usage)
                             }
                         }
-                        _ => (),
+                        None => (),
                     }
                 }
             }
-            None => (),
+            None => match &self.flags {
+                Some(flags) => {
+                    for flag in flags {
+                        println!("\t{}", flag.usage);
+                    }
+                    print!("\n");
+                }
+                None => (),
+            },
         }
+
+        println!("Version:\n\t{}\n", self.version);
     }
 
     /// Select command
