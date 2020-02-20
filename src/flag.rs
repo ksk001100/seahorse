@@ -4,9 +4,9 @@
 #[derive(Clone)]
 pub struct Flag {
     /// Flag name
-    pub name: &'static str,
+    pub name: String,
     /// Flag usage
-    pub usage: &'static str,
+    pub usage: String,
     /// Flag type
     pub flag_type: FlagType,
 }
@@ -39,10 +39,10 @@ impl Flag {
     /// let bool_flag = Flag::new("bool", "cli cmd [arg] --bool", FlagType::Bool);
     /// let float_flag = Flag::new("float", "cli cmd [arg] --float [float]", FlagType::Float);
     /// ```
-    pub fn new(name: &'static str, usage: &'static str, flag_type: FlagType) -> Self {
+    pub fn new<T: Into<String>>(name: T, usage: T, flag_type: FlagType) -> Self {
         Self {
-            name,
-            usage,
+            name: name.into(),
+            usage: usage.into(),
             flag_type,
         }
     }
