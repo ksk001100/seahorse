@@ -1,4 +1,5 @@
 use crate::{Action, Command, Context, Flag};
+use std::io::{stdout, BufWriter, Write};
 
 /// Application type
 enum AppType {
@@ -260,25 +261,28 @@ impl App {
     /// Application help
     /// Displays information about the application
     fn help(&self) {
-        println!("Name:\n\t{}\n", self.name);
-        println!("Author:\n\t{}\n", self.author);
+        let out = stdout();
+        let mut out = BufWriter::new(out.lock());
+
+        writeln!(out, "Name:\n\t{}\n", self.name).unwrap();
+        writeln!(out, "Author:\n\t{}\n", self.author).unwrap();
 
         if let Some(description) = self.description.to_owned() {
-            println!("Description:\n\t{}\n", description);
+            writeln!(out, "Description:\n\t{}\n", description).unwrap();
         }
 
-        println!("Usage:\n\t{}", self.usage);
+        writeln!(out, "Usage:\n\t{}", self.usage).unwrap();
 
         match &self.commands {
             Some(commands) => {
-                println!("\nCommands:");
+                writeln!(out, "\nCommands:").unwrap();
                 for c in commands {
-                    println!("\t{} : {}", c.name, c.usage);
+                    writeln!(out, "\t{} : {}", c.name, c.usage).unwrap();
 
                     match &c.flags {
                         Some(flags) => {
                             for flag in flags {
-                                println!("\t\t{}", flag.usage)
+                                writeln!(out, "\t\t{}", flag.usage).unwrap();
                             }
                         }
                         None => (),
@@ -288,15 +292,15 @@ impl App {
             None => match &self.flags {
                 Some(flags) => {
                     for flag in flags {
-                        println!("\t{}", flag.usage);
+                        writeln!(out, "\t{}", flag.usage).unwrap();
                     }
-                    print!("\n");
+                    write!(out, "\n").unwrap();
                 }
                 None => (),
             },
         }
 
-        println!("Version:\n\t{}\n", self.version);
+        writeln!(out, "Version:\n\t{}\n", self.version).unwrap();
     }
 
     /// Select command
