@@ -9,6 +9,8 @@ pub struct Flag {
     pub usage: String,
     /// Flag type
     pub flag_type: FlagType,
+    /// Flag alias
+    pub alias: Option<Vec<String>>,
 }
 
 /// `FlagType` enum
@@ -44,12 +46,42 @@ impl Flag {
             name: name.into(),
             usage: usage.into(),
             flag_type,
+            alias: None,
         }
+    }
+
+    /// Set alias of the flag
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{Flag, FlagType};
+    ///
+    /// let bool_flag = Flag::new("bool", "cli cmd [arg] --bool", FlagType::Bool)
+    ///     .alias(vec!["b"]);
+    /// ```
+    pub fn alias<T: Into<String>>(mut self, name: T) -> Self {
+        if let Some(ref mut alias) = self.alias {
+            (*alias).push(name.into());
+        } else {
+            self.alias = Some(vec![name.into()]);
+        }
+        self
     }
 
     /// Get flag position from `Vec<String>` command line argument
     fn option_index(&self, v: &Vec<String>) -> Option<usize> {
-        v.iter().position(|r| r == &format!("--{}", self.name))
+        println!("{:?}", self.alias);
+        match &self.alias {
+            Some(alias) => v.iter().position(|r| {
+                alias
+                    .iter()
+                    .map(|a| format!("-{}", a))
+                    .collect::<Vec<String>>()
+                    .contains(r)
+            }),
+            None => v.iter().position(|r| r == &format!("--{}", &self.name)),
+        }
     }
 
     /// Get flag value

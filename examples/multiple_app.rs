@@ -34,7 +34,7 @@ fn hello_command() -> Command {
         .usage("multiple_app hello [name]")
         .action(hello_action)
         .flags(vec![
-            Flag::new("bye", "multiple_app hello [name] --bye", FlagType::Bool),
+            Flag::new("bye", "multiple_app hello [name] --bye", FlagType::Bool).alias("b"),
             Flag::new(
                 "age",
                 "multiple_app hello [name] --age [age]",
