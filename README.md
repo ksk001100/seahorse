@@ -74,8 +74,10 @@ fn hello_command() -> Command {
         .usage("multiple_app hello [name]")
         .action(hello_action)
         .flags(vec![
-            Flag::new("bye", "multiple_app hello [name] --bye", FlagType::Bool),
+            Flag::new("bye", "multiple_app hello [name] --bye", FlagType::Bool)
+                .alias("b"),
             Flag::new("age", "multiple_app hello [name] --age [age]", FlagType::Int)
+                .alias("a"),
         ])
 }
 ```
@@ -84,6 +86,7 @@ fn hello_command() -> Command {
 $ cargo run
 $ cargo run John --bye
 $ cargo run John --age 30
+$ cargo run John -b -a 30
 ```
 
 ### Single action application
@@ -101,7 +104,9 @@ fn main() {
         .version(env!("CARGO_PKG_VERSION"))
         .action(action)
         .flags(vec![
-            Flag::new("bye", "single_app args --bye", FlagType::Bool),
+            Flag::new("bye", "single_app args --bye", FlagType::Bool)
+                .alias("b")
+                .alias("bl"),
         ]);
 
     app.run(args);
