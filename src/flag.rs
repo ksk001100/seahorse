@@ -9,6 +9,8 @@ pub struct Flag {
     pub usage: String,
     /// Flag type
     pub flag_type: FlagType,
+    /// Flag alias
+    pub alias: Option<Vec<String>>,
 }
 
 /// `FlagType` enum
@@ -44,18 +46,60 @@ impl Flag {
             name: name.into(),
             usage: usage.into(),
             flag_type,
+            alias: None,
         }
+    }
+
+    /// Set alias of the flag
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{Flag, FlagType};
+    ///
+    /// let bool_flag = Flag::new("bool", "cli cmd [arg] --bool", FlagType::Bool)
+    ///     .alias("b");
+    ///
+    /// let string_flag = Flag::new("string", "cli cmd [arg] --string [string]", FlagType::String)
+    ///     .alias("s")
+    ///     .alias("str");
+    /// ```
+    pub fn alias<T: Into<String>>(mut self, name: T) -> Self {
+        if let Some(ref mut alias) = self.alias {
+            (*alias).push(name.into());
+        } else {
+            self.alias = Some(vec![name.into()]);
+        }
+        self
     }
 
     /// Get flag position from `Vec<String>` command line argument
     fn option_index(&self, v: &Vec<String>) -> Option<usize> {
-        v.iter().position(|r| r == &format!("--{}", self.name))
+        match &self.alias {
+            Some(alias) => v.iter().position(|r| {
+                alias
+                    .iter()
+                    .map(|a| format!("-{}", a))
+                    .collect::<Vec<String>>()
+                    .contains(r)
+                    || r == &format!("--{}", &self.name)
+            }),
+            None => v.iter().position(|r| r == &format!("--{}", &self.name)),
+        }
     }
 
     /// Get flag value
     pub fn value(&self, v: &Vec<String>) -> Option<FlagValue> {
         match self.flag_type {
-            FlagType::Bool => Some(FlagValue::Bool(v.contains(&format!("--{}", self.name)))),
+            FlagType::Bool => match &self.alias {
+                Some(alias) => Some(FlagValue::Bool(
+                    alias
+                        .iter()
+                        .map(|a| v.contains(&format!("-{}", a)))
+                        .any(|b| b == true || v.contains(&format!("--{}", self.name))),
+                )),
+                None => Some(FlagValue::Bool(v.contains(&format!("--{}", self.name)))),
+            },
             FlagType::String => match self.option_index(&v) {
                 Some(index) => Some(FlagValue::String(v[index + 1].to_owned())),
                 None => None,
