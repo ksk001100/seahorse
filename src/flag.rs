@@ -58,7 +58,7 @@ impl Flag {
     /// use seahorse::{Flag, FlagType};
     ///
     /// let bool_flag = Flag::new("bool", "cli cmd [arg] --bool", FlagType::Bool)
-    ///     .alias(vec!["b"]);
+    ///     .alias("b");
     /// ```
     pub fn alias<T: Into<String>>(mut self, name: T) -> Self {
         if let Some(ref mut alias) = self.alias {
@@ -71,7 +71,6 @@ impl Flag {
 
     /// Get flag position from `Vec<String>` command line argument
     fn option_index(&self, v: &Vec<String>) -> Option<usize> {
-        println!("{:?}", self.alias);
         match &self.alias {
             Some(alias) => v.iter().position(|r| {
                 alias
