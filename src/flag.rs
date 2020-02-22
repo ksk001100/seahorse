@@ -96,8 +96,7 @@ impl Flag {
                     alias
                         .iter()
                         .map(|a| v.contains(&format!("-{}", a)))
-                        .any(|b| b == true)
-                        || v.contains(&format!("--{}", self.name)),
+                        .any(|b| b == true || v.contains(&format!("--{}", self.name))),
                 )),
                 None => Some(FlagValue::Bool(v.contains(&format!("--{}", self.name)))),
             },
