@@ -22,9 +22,10 @@ fn main() {
         .action(action)
         .flags(vec![Flag::new(
             "bye",
-            "single_app args --bye",
+            "single_app args --bye(-b)",
             FlagType::Bool,
-        )]);
+        )
+        .alias("b")]);
 
     app.run(args);
 }

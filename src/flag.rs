@@ -78,6 +78,7 @@ impl Flag {
                     .map(|a| format!("-{}", a))
                     .collect::<Vec<String>>()
                     .contains(r)
+                    || r == &format!("--{}", &self.name)
             }),
             None => v.iter().position(|r| r == &format!("--{}", &self.name)),
         }
@@ -86,7 +87,16 @@ impl Flag {
     /// Get flag value
     pub fn value(&self, v: &Vec<String>) -> Option<FlagValue> {
         match self.flag_type {
-            FlagType::Bool => Some(FlagValue::Bool(v.contains(&format!("--{}", self.name)))),
+            FlagType::Bool => match &self.alias {
+                Some(alias) => Some(FlagValue::Bool(
+                    alias
+                        .iter()
+                        .map(|a| v.contains(&format!("-{}", a)))
+                        .any(|b| b == true)
+                        || v.contains(&format!("--{}", self.name)),
+                )),
+                None => Some(FlagValue::Bool(v.contains(&format!("--{}", self.name)))),
+            },
             FlagType::String => match self.option_index(&v) {
                 Some(index) => Some(FlagValue::String(v[index + 1].to_owned())),
                 None => None,
