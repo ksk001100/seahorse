@@ -59,6 +59,10 @@ impl Flag {
     ///
     /// let bool_flag = Flag::new("bool", "cli cmd [arg] --bool", FlagType::Bool)
     ///     .alias("b");
+    ///
+    /// let string_flag = Flag::new("string", "cli cmd [arg] --string [string]", FlagType::String)
+    ///     .alias("s")
+    ///     .alias("str");
     /// ```
     pub fn alias<T: Into<String>>(mut self, name: T) -> Self {
         if let Some(ref mut alias) = self.alias {
