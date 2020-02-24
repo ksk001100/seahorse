@@ -45,6 +45,7 @@ impl Flag {
         let name = name.into();
         assert!(!name.starts_with('-'));
         assert!(!name.contains('='));
+        assert!(!name.contains(' '));
 
         Self {
             name,
@@ -134,6 +135,12 @@ mod tests {
     #[should_panic]
     fn construct_fail_2() {
         Flag::new("------bool", "", FlagType::Bool);
+    }
+
+    #[test]
+    #[should_panic]
+    fn construct_fail_3() {
+        Flag::new("cool flag", "", FlagType::Bool);
     }
 
     #[test]
