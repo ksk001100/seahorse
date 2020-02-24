@@ -201,17 +201,26 @@ impl App {
     /// app.run(args);
     /// ```
     pub fn run(&self, args: Vec<String>) {
-        match args.len() {
-            1 => {
-                self.help();
-                return;
-            }
-            _ => (),
+        if args.contains(&"--help".to_string()) {
+            self.help();
+            return;
         }
 
         let (cmd_v, args_v) = match self.app_type() {
-            AppType::Multiple => args[1..].split_at(1),
-            AppType::Single => args.split_at(1),
+            AppType::Multiple => match args.len() {
+                1 => {
+                    self.help();
+                    return;
+                }
+                _ => args[1..].split_at(1),
+            },
+            AppType::Single => match args.len() {
+                0 => {
+                    self.help();
+                    return;
+                }
+                _ => args.split_at(1),
+            },
             AppType::Undefined => {
                 // TODO: I want to be able to check if there is a problem with the combination at compile time in the future (compile_error macro...)
                 panic!("Action and flags cannot be set if commands are set in App");
