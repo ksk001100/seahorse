@@ -101,6 +101,26 @@ impl Command {
         self
     }
 
+    /// Set flag of the command
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{Command, Flag, FlagType};
+    ///
+    /// let command = Command::new()
+    ///     .flag(Flag::new("bool", "cli [arg] --bool", FlagType::Bool))
+    ///     .flag(Flag::new("int", "cli [arg] --int [int]", FlagType::Int));
+    /// ```
+    pub fn flag(mut self, flag: Flag) -> Self {
+        if let Some(ref mut flags) = self.flags {
+            (*flags).push(flag);
+        } else {
+            self.flags = Some(vec![flag]);
+        }
+        self
+    }
+
     /// Run command
     /// Call this function only from `App`
     pub fn run(&self, v: Vec<String>) {

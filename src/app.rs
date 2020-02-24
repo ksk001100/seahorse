@@ -155,6 +155,30 @@ impl App {
         self
     }
 
+    /// Set command of the app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{App, Command};
+    ///
+    /// let command = Command::new()
+    ///     .name("hello")
+    ///     .usage("cli hello [arg]")
+    ///     .action(|c| println!("{:?}", c.args));
+    ///
+    /// let app = App::new()
+    ///     .command(command);
+    /// ```
+    pub fn command(mut self, command: Command) -> Self {
+        if let Some(ref mut commands) = self.commands {
+            (*commands).push(command);
+        } else {
+            self.commands = Some(vec![command]);
+        }
+        self
+    }
+
     /// Set action of the app
     ///
     /// Example
@@ -163,8 +187,8 @@ impl App {
     /// use seahorse::{Action, App, Context};
     ///
     /// let app = App::new();
-    /// let action: Action = |c: &Context| println!("{:?}", c.args);
-    /// app.action(action);
+    /// let action: Action = |c: &Context| println!("{:?}", c.args)
+    ///     .action(action);
     /// ```
     pub fn action(mut self, action: Action) -> Self {
         self.action = Some(action);
@@ -186,6 +210,26 @@ impl App {
     /// ```
     pub fn flags(mut self, flags: Vec<Flag>) -> Self {
         self.flags = Some(flags);
+        self
+    }
+
+    /// Set flag of the app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{App, Flag, FlagType};
+    ///
+    /// let app = App::new()
+    ///     .flag(Flag::new("bool", "cli [arg] --bool", FlagType::Bool))
+    ///     .flag(Flag::new("int", "cli [arg] --int [int]", FlagType::Int));
+    /// ```
+    pub fn flag(mut self, flag: Flag) -> Self {
+        if let Some(ref mut flags) = self.flags {
+            (*flags).push(flag);
+        } else {
+            self.flags = Some(vec![flag]);
+        }
         self
     }
 
