@@ -207,6 +207,7 @@ impl App {
             return;
         }
 
+        let args = Self::normalized_args(args);
         match self.app_type() {
             AppType::Multiple => {
                 let (cmd_v, args_v) = match args.len() {
@@ -321,6 +322,22 @@ impl App {
             Some(commands) => commands.iter().find(|command| &command.name == cmd),
             None => None,
         }
+    }
+
+    /// Split arg with "=" to unify arg notations.
+    /// --flag=value => ["--flag", "value"]
+    /// --flag value => ["--flag", "value"]
+    fn normalized_args(raw_args: Vec<String>) -> Vec<String> {
+        raw_args.iter().fold(Vec::<String>::new(), |mut acc, cur| {
+            if cur.starts_with('-') && cur.contains('=') {
+                let mut splitted_flag: Vec<String> =
+                    cur.splitn(2, '=').map(|s| s.to_owned()).collect();
+                acc.append(&mut splitted_flag);
+            } else {
+                acc.push(cur.to_owned());
+            }
+            acc
+        })
     }
 }
 
@@ -508,6 +525,63 @@ mod tests {
 
         assert_eq!(app.name, "test".to_string());
         assert_eq!(app.usage, "test".to_string());
+        assert_eq!(app.author, "Author <author@example.com>".to_string());
+        assert_eq!(app.description, Some("This is a great tool.".to_string()));
+        assert_eq!(app.version, "0.0.1".to_string());
+    }
+
+    #[test]
+    fn single_app_equal_notation_test() {
+        let action: Action = |c: &Context| {
+            assert_eq!(true, c.bool_flag("bool"));
+            match c.string_flag("string") {
+                Some(flag) => assert_eq!("str=ing".to_string(), flag),
+                None => assert!(false, "string test false..."),
+            }
+            match c.int_flag("int") {
+                Some(flag) => assert_eq!(100, flag),
+                None => assert!(false, "int test false..."),
+            }
+            match c.float_flag("float") {
+                Some(flag) => assert_eq!(1.23, flag),
+                None => assert!(false, "float test false..."),
+            }
+        };
+
+        let app = App::new()
+            .name("test")
+            .author("Author <author@example.com>")
+            .description("This is a great tool.")
+            .usage("test [arg]")
+            .version("0.0.1")
+            .action(action)
+            .flags(vec![
+                Flag::new("bool", "test [args] --bool", FlagType::Bool),
+                Flag::new(
+                    "string",
+                    "test [args] --string [string value]",
+                    FlagType::String,
+                ),
+                Flag::new("int", "test [args] --int [int value]", FlagType::Int),
+                Flag::new(
+                    "float",
+                    "test [args] --float [float value]",
+                    FlagType::Float,
+                )
+                .alias("f"),
+            ]);
+
+        app.run(vec![
+            "test".to_string(),
+            "args".to_string(),
+            "--bool".to_string(),
+            "--string=str=ing".to_string(),
+            "--int=100".to_string(),
+            "-f=1.23".to_string(),
+        ]);
+
+        assert_eq!(app.name, "test".to_string());
+        assert_eq!(app.usage, "test [arg]".to_string());
         assert_eq!(app.author, "Author <author@example.com>".to_string());
         assert_eq!(app.description, Some("This is a great tool.".to_string()));
         assert_eq!(app.version, "0.0.1".to_string());

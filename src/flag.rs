@@ -42,8 +42,28 @@ impl Flag {
     /// let float_flag = Flag::new("float", "cli cmd [arg] --float [float]", FlagType::Float);
     /// ```
     pub fn new<T: Into<String>>(name: T, usage: T, flag_type: FlagType) -> Self {
+        let name = name.into();
+        if name.starts_with('-') {
+            panic!(format!(
+                r#""{}" is invalid flag name. Flag name cannnot start with "-"."#,
+                name
+            ))
+        }
+        if name.contains('=') {
+            panic!(format!(
+                r#""{}" is invalid flag name. Flag name cannnot contain "="."#,
+                name
+            ))
+        }
+        if name.contains(' ') {
+            panic!(format!(
+                r#""{}" is invalid flag name. Flag name cannnot contain whitespaces."#,
+                name
+            ))
+        }
+
         Self {
-            name: name.into(),
+            name,
             usage: usage.into(),
             flag_type,
             alias: None,
@@ -119,6 +139,24 @@ impl Flag {
 #[cfg(test)]
 mod tests {
     use crate::{Flag, FlagType, FlagValue};
+
+    #[test]
+    #[should_panic]
+    fn construct_fail_1() {
+        Flag::new("bo=ol", "", FlagType::Bool);
+    }
+
+    #[test]
+    #[should_panic]
+    fn construct_fail_2() {
+        Flag::new("------bool", "", FlagType::Bool);
+    }
+
+    #[test]
+    #[should_panic]
+    fn construct_fail_3() {
+        Flag::new("cool flag", "", FlagType::Bool);
+    }
 
     #[test]
     fn bool_flag_test() {
