@@ -207,21 +207,43 @@ impl App {
             return;
         }
 
-        let (cmd_v, args_v) = match self.app_type() {
-            AppType::Multiple => match args.len() {
-                1 => {
+        match self.app_type() {
+            AppType::Multiple => {
+                let (cmd_v, args_v) = match args.len() {
+                    1 => {
+                        self.help();
+                        return;
+                    }
+                    _ => args[1..].split_at(1),
+                };
+
+                let cmd = match cmd_v.first() {
+                    Some(c) => c,
+                    None => {
+                        self.help();
+                        return;
+                    }
+                };
+
+                if cmd.len() < 1 {
                     self.help();
                     return;
                 }
-                _ => args[1..].split_at(1),
-            },
-            AppType::Single => match args.len() {
-                0 => {
-                    self.help();
-                    return;
+
+                match self.select_command(&cmd) {
+                    Some(command) => {
+                        command.run(args_v.to_vec());
+                    }
+                    None => self.help(),
                 }
-                _ => args.split_at(1),
-            },
+            }
+            AppType::Single => {
+                let args_v = &args[1..];
+                match self.action {
+                    Some(action) => action(&Context::new(args_v.to_vec(), self.flags.clone())),
+                    None => self.help(),
+                }
+            }
             AppType::Empty => {
                 self.help();
                 return;
@@ -230,32 +252,6 @@ impl App {
                 // TODO: I want to be able to check if there is a problem with the combination at compile time in the future (compile_error macro...)
                 panic!("Action and flags cannot be set if commands are set in App");
             }
-        };
-
-        let cmd = match cmd_v.first() {
-            Some(c) => c,
-            None => {
-                self.help();
-                return;
-            }
-        };
-
-        match (cmd.len(), args_v.len()) {
-            (0, _) | (_, 0) => {
-                self.help();
-                return;
-            }
-            _ => (),
-        }
-
-        match self.select_command(&cmd) {
-            Some(command) => {
-                command.run(args[1..].to_vec());
-            }
-            None => match self.action {
-                Some(action) => action(&Context::new(args[1..].to_vec(), self.flags.clone())),
-                None => self.help(),
-            },
         }
     }
 
