@@ -5,6 +5,7 @@ use std::io::{stdout, BufWriter, Write};
 enum AppType {
     Multiple,
     Single,
+    Empty,
     Undefined,
 }
 
@@ -221,6 +222,10 @@ impl App {
                 }
                 _ => args.split_at(1),
             },
+            AppType::Empty => {
+                self.help();
+                return;
+            },
             AppType::Undefined => {
                 // TODO: I want to be able to check if there is a problem with the combination at compile time in the future (compile_error macro...)
                 panic!("Action and flags cannot be set if commands are set in App");
@@ -263,6 +268,7 @@ impl App {
         ) {
             (true, false, false) => AppType::Multiple,
             (false, true, _) => AppType::Single,
+            (false, false, false) => AppType::Empty,
             _ => AppType::Undefined,
         }
     }
@@ -325,6 +331,18 @@ impl App {
 #[cfg(test)]
 mod tests {
     use crate::{Action, App, Command, Context, Flag, FlagType};
+
+    #[test]
+    fn app_new_only_test() {
+        let app = App::new();
+        app.run(vec!["cli".to_string()]);
+
+        assert_eq!(app.name, "".to_string());
+        assert_eq!(app.usage, "".to_string());
+        assert_eq!(app.author, "".to_string());
+        assert_eq!(app.description, None);
+        assert_eq!(app.version, "".to_string());
+    }
 
     #[test]
     fn multiple_app_test() {
@@ -412,27 +430,26 @@ mod tests {
             .name("test")
             .author("Author <author@example.com>")
             .description("This is a great tool.")
-            .usage("test [command] [arg]")
+            .usage("test [arg]")
             .version("0.0.1")
             .action(action)
             .flags(vec![
-                Flag::new("bool", "test hello [args] --bool", FlagType::Bool),
+                Flag::new("bool", "test [args] --bool", FlagType::Bool),
                 Flag::new(
                     "string",
-                    "test hello [args] --int [int value]",
+                    "test [args] --int [int value]",
                     FlagType::String,
                 ),
-                Flag::new("int", "test hello [args] --int [int value]", FlagType::Int),
+                Flag::new("int", "test [args] --int [int value]", FlagType::Int),
                 Flag::new(
                     "float",
-                    "test hello [args] --int [int value]",
+                    "test [args] --float [float value]",
                     FlagType::Float,
                 ),
             ]);
 
         app.run(vec![
             "test".to_string(),
-            "hello".to_string(),
             "args".to_string(),
             "--bool".to_string(),
             "--string".to_string(),
@@ -444,7 +461,66 @@ mod tests {
         ]);
 
         assert_eq!(app.name, "test".to_string());
-        assert_eq!(app.usage, "test [command] [arg]".to_string());
+        assert_eq!(app.usage, "test [arg]".to_string());
+        assert_eq!(app.author, "Author <author@example.com>".to_string());
+        assert_eq!(app.description, Some("This is a great tool.".to_string()));
+        assert_eq!(app.version, "0.0.1".to_string());
+    }
+
+    #[test]
+    fn flag_only_app_test() {
+        let action: Action = |c: &Context| {
+            assert_eq!(true, c.bool_flag("bool"));
+            match c.string_flag("string") {
+                Some(flag) => assert_eq!("string".to_string(), flag),
+                None => assert!(false, "string test false..."),
+            }
+            match c.int_flag("int") {
+                Some(flag) => assert_eq!(100, flag),
+                None => assert!(false, "int test false..."),
+            }
+            match c.float_flag("float") {
+                Some(flag) => assert_eq!(1.23, flag),
+                None => assert!(false, "float test false..."),
+            }
+        };
+
+        let app = App::new()
+            .name("test")
+            .author("Author <author@example.com>")
+            .description("This is a great tool.")
+            .usage("test")
+            .version("0.0.1")
+            .action(action)
+            .flags(vec![
+                Flag::new("bool", "test --bool", FlagType::Bool),
+                Flag::new(
+                    "string",
+                    "test --int [int value]",
+                    FlagType::String,
+                ),
+                Flag::new("int", "test --int [int value]", FlagType::Int),
+                Flag::new(
+                    "float",
+                    "test --float [float value]",
+                    FlagType::Float,
+                ),
+            ]);
+
+        app.run(vec![
+            "test".to_string(),
+            "hello".to_string(),
+            "--bool".to_string(),
+            "--string".to_string(),
+            "string".to_string(),
+            "--int".to_string(),
+            "100".to_string(),
+            "--float".to_string(),
+            "1.23".to_string(),
+        ]);
+
+        assert_eq!(app.name, "test".to_string());
+        assert_eq!(app.usage, "test".to_string());
         assert_eq!(app.author, "Author <author@example.com>".to_string());
         assert_eq!(app.description, Some("This is a great tool.".to_string()));
         assert_eq!(app.version, "0.0.1".to_string());
