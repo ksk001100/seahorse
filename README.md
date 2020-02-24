@@ -90,6 +90,7 @@ $ cargo run
 $ cargo run John --bye
 $ cargo run John --age 30
 $ cargo run John -b -a 30
+$ cargo run John --age=30
 ```
 
 ### Single action application
