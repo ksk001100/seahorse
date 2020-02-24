@@ -324,7 +324,6 @@ impl App {
         }
     }
 
-    ///
     /// Split arg with "=" to unify arg notations.
     /// --flag=value => ["--flag", "value"]
     /// --flag value => ["--flag", "value"]
