@@ -501,7 +501,6 @@ mod tests {
 
         app.run(vec![
             "test".to_string(),
-            "hello".to_string(),
             "--bool".to_string(),
             "--string".to_string(),
             "string".to_string(),
