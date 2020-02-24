@@ -568,7 +568,8 @@ mod tests {
                     "float",
                     "test [args] --float [float value]",
                     FlagType::Float,
-                ),
+                )
+                .alias("f"),
             ]);
 
         app.run(vec![
@@ -577,7 +578,7 @@ mod tests {
             "--bool".to_string(),
             "--string=str=ing".to_string(),
             "--int=100".to_string(),
-            "--float=1.23".to_string(),
+            "-f=1.23".to_string(),
         ]);
 
         assert_eq!(app.name, "test".to_string());
