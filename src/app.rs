@@ -225,7 +225,7 @@ impl App {
             AppType::Empty => {
                 self.help();
                 return;
-            },
+            }
             AppType::Undefined => {
                 // TODO: I want to be able to check if there is a problem with the combination at compile time in the future (compile_error macro...)
                 panic!("Action and flags cannot be set if commands are set in App");
@@ -369,13 +369,13 @@ mod tests {
                 Flag::new("bool", "test hello [args] --bool", FlagType::Bool),
                 Flag::new(
                     "string",
-                    "test hello [args] --int [int value]",
+                    "test hello [args] --string [string value]",
                     FlagType::String,
                 ),
                 Flag::new("int", "test hello [args] --int [int value]", FlagType::Int),
                 Flag::new(
                     "float",
-                    "test hello [args] --int [int value]",
+                    "test hello [args] --float [float value]",
                     FlagType::Float,
                 ),
             ]);
@@ -437,7 +437,7 @@ mod tests {
                 Flag::new("bool", "test [args] --bool", FlagType::Bool),
                 Flag::new(
                     "string",
-                    "test [args] --int [int value]",
+                    "test [args] --string [string value]",
                     FlagType::String,
                 ),
                 Flag::new("int", "test [args] --int [int value]", FlagType::Int),
@@ -494,17 +494,9 @@ mod tests {
             .action(action)
             .flags(vec![
                 Flag::new("bool", "test --bool", FlagType::Bool),
-                Flag::new(
-                    "string",
-                    "test --int [int value]",
-                    FlagType::String,
-                ),
+                Flag::new("string", "test --string [string value]", FlagType::String),
                 Flag::new("int", "test --int [int value]", FlagType::Int),
-                Flag::new(
-                    "float",
-                    "test --float [float value]",
-                    FlagType::Float,
-                ),
+                Flag::new("float", "test --float [float value]", FlagType::Float),
             ]);
 
         app.run(vec![
