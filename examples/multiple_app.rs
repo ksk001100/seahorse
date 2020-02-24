@@ -9,7 +9,7 @@ fn main() {
         .description(env!("CARGO_PKG_DESCRIPTION"))
         .usage("multiple_app [command] [arg]")
         .version(env!("CARGO_PKG_VERSION"))
-        .commands(vec![hello_command()]);
+        .command(hello_command());
 
     app.run(args);
 }
@@ -33,8 +33,8 @@ fn hello_command() -> Command {
         .name("hello")
         .usage("multiple_app hello [name]")
         .action(hello_action)
-        .flags(vec![
-            Flag::new("bye", "multiple_app hello [name] --bye(-b)", FlagType::Bool).alias("b"),
+        .flag(Flag::new("bye", "multiple_app hello [name] --bye(-b)", FlagType::Bool).alias("b"))
+        .flag(
             Flag::new(
                 "age",
                 "multiple_app hello [name] --age(-a, -ag) [age]",
@@ -42,5 +42,5 @@ fn hello_command() -> Command {
             )
             .alias("a")
             .alias("ag"),
-        ])
+        )
 }

@@ -20,12 +20,7 @@ fn main() {
         .usage("single_app [args]")
         .version(env!("CARGO_PKG_VERSION"))
         .action(action)
-        .flags(vec![Flag::new(
-            "bye",
-            "single_app args --bye(-b)",
-            FlagType::Bool,
-        )
-        .alias("b")]);
+        .flag(Flag::new("bye", "single_app args --bye(-b)", FlagType::Bool).alias("b"));
 
     app.run(args);
 }
