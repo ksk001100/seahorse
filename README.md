@@ -38,8 +38,8 @@ $ cargo run --example multiple_app
 ### Multiple action application
 
 ```rust
+use seahorse::{color, App, Command, Context, Flag, FlagType};
 use std::env;
-use seahorse::{App, Command, color, Flag, FlagType, Context};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -49,7 +49,7 @@ fn main() {
         .description(env!("CARGO_PKG_DESCRIPTION"))
         .usage("multiple_app [command] [arg]")
         .version(env!("CARGO_PKG_VERSION"))
-        .commands(vec![hello_command()]);
+        .command(hello_command());
 
     app.run(args);
 }
@@ -61,10 +61,10 @@ fn hello_action(c: &Context) {
     } else {
         println!("Hello, {}", name);
     }
-    
+
     match c.int_flag("age") {
         Some(age) => println!("{} is {} years old", name, age),
-        None => println!("I don't know {}'s age", name)
+        None => println!("I don't know {}'s age", name),
     }
 }
 
@@ -73,12 +73,15 @@ fn hello_command() -> Command {
         .name("hello")
         .usage("multiple_app hello [name]")
         .action(hello_action)
-        .flags(vec![
-            Flag::new("bye", "multiple_app hello [name] --bye", FlagType::Bool)
-                .alias("b"),
-            Flag::new("age", "multiple_app hello [name] --age [age]", FlagType::Int)
-                .alias("a"),
-        ])
+        .flag(Flag::new("bye", "multiple_app hello [name] --bye", FlagType::Bool).alias("b"))
+        .flag(
+            Flag::new(
+                "age",
+                "multiple_app hello [name] --age [age]",
+                FlagType::Int,
+            )
+            .alias("a"),
+        )
 }
 ```
 
@@ -91,8 +94,8 @@ $ cargo run John -b -a 30
 
 ### Single action application
 ```rust
+use seahorse::{color, App, Context, Flag, FlagType};
 use std::env;
-use seahorse::{App, color, Context, Flag, FlagType};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -103,11 +106,11 @@ fn main() {
         .usage("single_app [args]")
         .version(env!("CARGO_PKG_VERSION"))
         .action(action)
-        .flags(vec![
+        .flag(
             Flag::new("bye", "single_app args --bye", FlagType::Bool)
                 .alias("b")
-                .alias("bl"),
-        ]);
+                .alias("by"),
+        );
 
     app.run(args);
 }
@@ -120,12 +123,14 @@ fn action(c: &Context) {
         println!("Hello, {:?}", name);
     }
 }
+
 ```
 
 ```bash
 $ cargo run
 $ cargo run Bob
 $ cargo run Bob --bye
+$ cargo run Bob -b
 ```
 
 ## Contributing
