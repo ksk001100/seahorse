@@ -5,6 +5,7 @@ use std::io::{stdout, BufWriter, Write};
 enum AppType {
     Multiple,
     Single,
+    Empty,
     Undefined,
 }
 
@@ -201,47 +202,56 @@ impl App {
     /// app.run(args);
     /// ```
     pub fn run(&self, args: Vec<String>) {
-        match args.len() {
-            1 => {
+        if args.contains(&"--help".to_string()) {
+            self.help();
+            return;
+        }
+
+        match self.app_type() {
+            AppType::Multiple => {
+                let (cmd_v, args_v) = match args.len() {
+                    1 => {
+                        self.help();
+                        return;
+                    }
+                    _ => args[1..].split_at(1),
+                };
+
+                let cmd = match cmd_v.first() {
+                    Some(c) => c,
+                    None => {
+                        self.help();
+                        return;
+                    }
+                };
+
+                if cmd.len() < 1 {
+                    self.help();
+                    return;
+                }
+
+                match self.select_command(&cmd) {
+                    Some(command) => {
+                        command.run(args_v.to_vec());
+                    }
+                    None => self.help(),
+                }
+            }
+            AppType::Single => {
+                let args_v = &args[1..];
+                match self.action {
+                    Some(action) => action(&Context::new(args_v.to_vec(), self.flags.clone())),
+                    None => self.help(),
+                }
+            }
+            AppType::Empty => {
                 self.help();
                 return;
             }
-            _ => (),
-        }
-
-        let (cmd_v, args_v) = match self.app_type() {
-            AppType::Multiple => args[1..].split_at(1),
-            AppType::Single => args.split_at(1),
             AppType::Undefined => {
                 // TODO: I want to be able to check if there is a problem with the combination at compile time in the future (compile_error macro...)
                 panic!("Action and flags cannot be set if commands are set in App");
             }
-        };
-
-        let cmd = match cmd_v.first() {
-            Some(c) => c,
-            None => {
-                self.help();
-                return;
-            }
-        };
-
-        match (cmd.len(), args_v.len()) {
-            (0, _) | (_, 0) => {
-                self.help();
-                return;
-            }
-            _ => (),
-        }
-
-        match self.select_command(&cmd) {
-            Some(command) => {
-                command.run(args[1..].to_vec());
-            }
-            None => match self.action {
-                Some(action) => action(&Context::new(args[1..].to_vec(), self.flags.clone())),
-                None => self.help(),
-            },
         }
     }
 
@@ -254,6 +264,7 @@ impl App {
         ) {
             (true, false, false) => AppType::Multiple,
             (false, true, _) => AppType::Single,
+            (false, false, false) => AppType::Empty,
             _ => AppType::Undefined,
         }
     }
@@ -318,6 +329,18 @@ mod tests {
     use crate::{Action, App, Command, Context, Flag, FlagType};
 
     #[test]
+    fn app_new_only_test() {
+        let app = App::new();
+        app.run(vec!["cli".to_string()]);
+
+        assert_eq!(app.name, "".to_string());
+        assert_eq!(app.usage, "".to_string());
+        assert_eq!(app.author, "".to_string());
+        assert_eq!(app.description, None);
+        assert_eq!(app.version, "".to_string());
+    }
+
+    #[test]
     fn multiple_app_test() {
         let a: Action = |c: &Context| {
             assert_eq!(true, c.bool_flag("bool"));
@@ -342,13 +365,13 @@ mod tests {
                 Flag::new("bool", "test hello [args] --bool", FlagType::Bool),
                 Flag::new(
                     "string",
-                    "test hello [args] --int [int value]",
+                    "test hello [args] --string [string value]",
                     FlagType::String,
                 ),
                 Flag::new("int", "test hello [args] --int [int value]", FlagType::Int),
                 Flag::new(
                     "float",
-                    "test hello [args] --int [int value]",
+                    "test hello [args] --float [float value]",
                     FlagType::Float,
                 ),
             ]);
@@ -403,27 +426,26 @@ mod tests {
             .name("test")
             .author("Author <author@example.com>")
             .description("This is a great tool.")
-            .usage("test [command] [arg]")
+            .usage("test [arg]")
             .version("0.0.1")
             .action(action)
             .flags(vec![
-                Flag::new("bool", "test hello [args] --bool", FlagType::Bool),
+                Flag::new("bool", "test [args] --bool", FlagType::Bool),
                 Flag::new(
                     "string",
-                    "test hello [args] --int [int value]",
+                    "test [args] --string [string value]",
                     FlagType::String,
                 ),
-                Flag::new("int", "test hello [args] --int [int value]", FlagType::Int),
+                Flag::new("int", "test [args] --int [int value]", FlagType::Int),
                 Flag::new(
                     "float",
-                    "test hello [args] --int [int value]",
+                    "test [args] --float [float value]",
                     FlagType::Float,
                 ),
             ]);
 
         app.run(vec![
             "test".to_string(),
-            "hello".to_string(),
             "args".to_string(),
             "--bool".to_string(),
             "--string".to_string(),
@@ -435,7 +457,57 @@ mod tests {
         ]);
 
         assert_eq!(app.name, "test".to_string());
-        assert_eq!(app.usage, "test [command] [arg]".to_string());
+        assert_eq!(app.usage, "test [arg]".to_string());
+        assert_eq!(app.author, "Author <author@example.com>".to_string());
+        assert_eq!(app.description, Some("This is a great tool.".to_string()));
+        assert_eq!(app.version, "0.0.1".to_string());
+    }
+
+    #[test]
+    fn flag_only_app_test() {
+        let action: Action = |c: &Context| {
+            assert_eq!(true, c.bool_flag("bool"));
+            match c.string_flag("string") {
+                Some(flag) => assert_eq!("string".to_string(), flag),
+                None => assert!(false, "string test false..."),
+            }
+            match c.int_flag("int") {
+                Some(flag) => assert_eq!(100, flag),
+                None => assert!(false, "int test false..."),
+            }
+            match c.float_flag("float") {
+                Some(flag) => assert_eq!(1.23, flag),
+                None => assert!(false, "float test false..."),
+            }
+        };
+
+        let app = App::new()
+            .name("test")
+            .author("Author <author@example.com>")
+            .description("This is a great tool.")
+            .usage("test")
+            .version("0.0.1")
+            .action(action)
+            .flags(vec![
+                Flag::new("bool", "test --bool", FlagType::Bool),
+                Flag::new("string", "test --string [string value]", FlagType::String),
+                Flag::new("int", "test --int [int value]", FlagType::Int),
+                Flag::new("float", "test --float [float value]", FlagType::Float),
+            ]);
+
+        app.run(vec![
+            "test".to_string(),
+            "--bool".to_string(),
+            "--string".to_string(),
+            "string".to_string(),
+            "--int".to_string(),
+            "100".to_string(),
+            "--float".to_string(),
+            "1.23".to_string(),
+        ]);
+
+        assert_eq!(app.name, "test".to_string());
+        assert_eq!(app.usage, "test".to_string());
         assert_eq!(app.author, "Author <author@example.com>".to_string());
         assert_eq!(app.description, Some("This is a great tool.".to_string()));
         assert_eq!(app.version, "0.0.1".to_string());
