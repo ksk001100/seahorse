@@ -43,9 +43,24 @@ impl Flag {
     /// ```
     pub fn new<T: Into<String>>(name: T, usage: T, flag_type: FlagType) -> Self {
         let name = name.into();
-        assert!(!name.starts_with('-'));
-        assert!(!name.contains('='));
-        assert!(!name.contains(' '));
+        if name.starts_with('-') {
+            panic!(format!(
+                r#""{}" is invalid flag name. Flag name cannnot start with "-"."#,
+                name
+            ))
+        }
+        if name.contains('=') {
+            panic!(format!(
+                r#""{}" is invalid flag name. Flag name cannnot contain "="."#,
+                name
+            ))
+        }
+        if name.contains(' ') {
+            panic!(format!(
+                r#""{}" is invalid flag name. Flag name cannnot contain whitespaces."#,
+                name
+            ))
+        }
 
         Self {
             name,
