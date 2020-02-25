@@ -30,15 +30,14 @@ impl Context {
         let flags_val = match flags {
             Some(flags) => {
                 for flag in flags {
-                    if parsed_args.contains(&format!("--{}", flag.name)) {
-                        let index = parsed_args
-                            .iter()
-                            .position(|arg| *arg == format!("--{}", flag.name))
-                            .unwrap();
-                        parsed_args.remove(index);
-                        if flag.flag_type != FlagType::Bool {
+                    match flag.option_index(&parsed_args) {
+                        Some(index) => {
                             parsed_args.remove(index);
+                            if flag.flag_type != FlagType::Bool {
+                                parsed_args.remove(index);
+                            }
                         }
+                        None => (),
                     }
                     v.push((flag.name.to_string(), flag.value(&args)))
                 }
