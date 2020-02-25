@@ -23,7 +23,7 @@ To use seahorse, add this to your Cargo.toml:
 
 ```toml
 [dependencies]
-seahorse = "0.6.0"
+seahorse = "0.6.1"
 ```
 
 ## Example
