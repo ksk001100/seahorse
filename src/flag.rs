@@ -94,7 +94,7 @@ impl Flag {
     }
 
     /// Get flag position from `Vec<String>` command line argument
-    fn option_index(&self, v: &Vec<String>) -> Option<usize> {
+    pub fn option_index(&self, v: &Vec<String>) -> Option<usize> {
         match &self.alias {
             Some(alias) => v.iter().position(|r| {
                 alias
