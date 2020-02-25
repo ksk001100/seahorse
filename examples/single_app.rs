@@ -26,10 +26,9 @@ fn main() {
 }
 
 fn action(c: &Context) {
-    let name = &c.args[0];
     if c.bool_flag("bye") {
-        println!("Bye, {:?}", name);
+        println!("Bye, {:?}", c.args);
     } else {
-        println!("Hello, {:?}", name);
+        println!("Hello, {:?}", c.args);
     }
 }
