@@ -109,10 +109,8 @@ impl Flag {
         match self.flag_type {
             FlagType::Bool => match &self.alias {
                 Some(alias) => Some(FlagValue::Bool(
-                    alias
-                        .iter()
-                        .map(|a| v.contains(&format!("-{}", a)))
-                        .any(|b| b || v.contains(&format!("--{}", self.name))),
+                    v.contains(&format!("--{}", self.name))
+                        || alias.iter().any(|a| v.contains(&format!("-{}", a))),
                 )),
                 None => Some(FlagValue::Bool(v.contains(&format!("--{}", self.name)))),
             },
