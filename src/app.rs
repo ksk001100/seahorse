@@ -230,7 +230,7 @@ impl App {
                     }
                 };
 
-                if cmd.len() < 1 {
+                if cmd.is_empty() {
                     self.help();
                     return;
                 }
@@ -251,7 +251,6 @@ impl App {
             }
             AppType::Empty => {
                 self.help();
-                return;
             }
             AppType::Undefined => {
                 // TODO: I want to be able to check if there is a problem with the combination at compile time in the future (compile_error macro...)
@@ -310,7 +309,7 @@ impl App {
                     for flag in flags {
                         writeln!(out, "\t{}", flag.usage).unwrap();
                     }
-                    write!(out, "\n").unwrap();
+                    writeln!(out).unwrap();
                 }
                 None => (),
             },
@@ -321,7 +320,7 @@ impl App {
 
     /// Select command
     /// Gets the Command that matches the string passed in the argument
-    fn select_command(&self, cmd: &String) -> Option<&Command> {
+    fn select_command(&self, cmd: &str) -> Option<&Command> {
         match &self.commands {
             Some(commands) => commands.iter().find(|command| &command.name == cmd),
             None => None,

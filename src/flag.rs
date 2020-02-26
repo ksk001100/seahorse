@@ -93,15 +93,14 @@ impl Flag {
         self
     }
 
-    /// Get flag position from `Vec<String>` command line argument
-    pub fn option_index(&self, v: &Vec<String>) -> Option<usize> {
+    /// Get flag position from command line argument
+    pub fn option_index(&self, v: &[String]) -> Option<usize> {
         match &self.alias {
             Some(alias) => v.iter().position(|r| {
                 alias
                     .iter()
                     .map(|a| format!("-{}", a))
-                    .collect::<Vec<String>>()
-                    .contains(r)
+                    .any(|a| &a == r)
                     || r == &format!("--{}", &self.name)
             }),
             None => v.iter().position(|r| r == &format!("--{}", &self.name)),
@@ -109,14 +108,14 @@ impl Flag {
     }
 
     /// Get flag value
-    pub fn value(&self, v: &Vec<String>) -> Option<FlagValue> {
+    pub fn value(&self, v: &[String]) -> Option<FlagValue> {
         match self.flag_type {
             FlagType::Bool => match &self.alias {
                 Some(alias) => Some(FlagValue::Bool(
                     alias
                         .iter()
                         .map(|a| v.contains(&format!("-{}", a)))
-                        .any(|b| b == true || v.contains(&format!("--{}", self.name))),
+                        .any(|b| b || v.contains(&format!("--{}", self.name))),
                 )),
                 None => Some(FlagValue::Bool(v.contains(&format!("--{}", self.name)))),
             },
