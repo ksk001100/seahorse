@@ -97,8 +97,7 @@ impl Flag {
     pub fn option_index(&self, v: &[String]) -> Option<usize> {
         match &self.alias {
             Some(alias) => v.iter().position(|r| {
-                alias.iter().map(|a| format!("-{}", a)).any(|a| &a == r)
-                    || r == &format!("--{}", &self.name)
+                r == &format!("--{}", &self.name) || alias.iter().any(|a| r == &format!("-{}", a))
             }),
             None => v.iter().position(|r| r == &format!("--{}", &self.name)),
         }
@@ -133,6 +132,29 @@ impl Flag {
 #[cfg(test)]
 mod tests {
     use crate::{Flag, FlagType, FlagValue};
+
+    #[test]
+    fn opiton_index() {
+        let v = vec![
+            "cli".to_string(),
+            "command".to_string(),
+            "-a".to_string(),
+            "--bool".to_string(),
+            "-c".to_string(),
+        ];
+        {
+            let f = Flag::new("bool", "", FlagType::Bool);
+            assert_eq!(f.option_index(&v), Some(3));
+        }
+        {
+            let f = Flag::new("age", "", FlagType::Bool).alias("a");
+            assert_eq!(f.option_index(&v), Some(2));
+        }
+        {
+            let f = Flag::new("dance", "", FlagType::Bool);
+            assert_eq!(f.option_index(&v), None);
+        }
+    }
 
     #[test]
     #[should_panic]
