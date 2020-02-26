@@ -53,7 +53,7 @@ impl Context {
     fn option_flag_value(&self, name: &str) -> Option<&FlagValue> {
         self.flags
             .as_ref()
-            .and_then(|flags| flags.iter().find(|flag| &flag.0 == name))
+            .and_then(|flags| flags.iter().find(|flag| flag.0 == name))
             .and_then(|flag| flag.1.as_ref())
     }
 

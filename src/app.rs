@@ -322,7 +322,7 @@ impl App {
     /// Gets the Command that matches the string passed in the argument
     fn select_command(&self, cmd: &str) -> Option<&Command> {
         match &self.commands {
-            Some(commands) => commands.iter().find(|command| &command.name == cmd),
+            Some(commands) => commands.iter().find(|command| command.name == cmd),
             None => None,
         }
     }
