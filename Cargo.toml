@@ -1,12 +1,20 @@
 [package]
 name = "seahorse"
-version = "0.6.1"
+version = "0.6.2"
 authors = ["ksk001100 <hm.pudding0715@gmail.com>"]
 edition = "2018"
-keywords = ["cli"]
+keywords = [
+	"argument",
+	"cli",
+	"arg",
+	"parser",
+	"parse"
+]
+categories = ["command-line-interface"]
 repository = "https://github.com/ksk001100/seahorse"
 readme = "README.md"
 license-file = "LICENSE"
+documentation = "https://docs.rs/seahorse/"
 description = "A minimal CLI framework written in Rust"
 
 [dependencies]
