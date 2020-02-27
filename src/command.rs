@@ -106,7 +106,7 @@ impl Command {
     /// Run command
     /// Call this function only from `App`
     pub fn run(&self, v: Vec<String>) {
-        (self.action)(&Context::new(v.clone(), self.flags.clone()))
+        (self.action)(&Context::new(v, self.flags.clone()))
     }
 }
 

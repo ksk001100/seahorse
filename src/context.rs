@@ -53,7 +53,7 @@ impl Context {
     fn option_flag_value(&self, name: &str) -> Option<&FlagValue> {
         self.flags
             .as_ref()
-            .and_then(|flags| flags.into_iter().find(|flag| flag.0 == name.to_string()))
+            .and_then(|flags| flags.iter().find(|flag| flag.0 == name))
             .and_then(|flag| flag.1.as_ref())
     }
 
@@ -75,7 +75,7 @@ impl Context {
     /// ```
     pub fn bool_flag(&self, name: &str) -> bool {
         match self.option_flag_value(name) {
-            Some(FlagValue::Bool(val)) => (*val).clone(),
+            Some(FlagValue::Bool(val)) => *val,
             _ => false,
         }
     }
@@ -99,7 +99,7 @@ impl Context {
     /// ```
     pub fn string_flag(&self, name: &str) -> Option<String> {
         match self.option_flag_value(name) {
-            Some(FlagValue::String(val)) => Some((&val).to_string()),
+            Some(FlagValue::String(val)) => Some(val.to_string()),
             _ => None,
         }
     }
@@ -123,7 +123,7 @@ impl Context {
     /// ```
     pub fn int_flag(&self, name: &str) -> Option<isize> {
         match self.option_flag_value(name) {
-            Some(FlagValue::Int(val)) => Some(val.clone()),
+            Some(FlagValue::Int(val)) => Some(*val),
             _ => None,
         }
     }
@@ -147,7 +147,7 @@ impl Context {
     /// ```
     pub fn float_flag(&self, name: &str) -> Option<f64> {
         match self.option_flag_value(name) {
-            Some(FlagValue::Float(val)) => Some(val.clone()),
+            Some(FlagValue::Float(val)) => Some(*val),
             _ => None,
         }
     }

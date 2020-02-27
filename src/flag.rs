@@ -93,30 +93,23 @@ impl Flag {
         self
     }
 
-    /// Get flag position from `Vec<String>` command line argument
-    pub fn option_index(&self, v: &Vec<String>) -> Option<usize> {
+    /// Get flag position from command line argument
+    pub fn option_index(&self, v: &[String]) -> Option<usize> {
         match &self.alias {
             Some(alias) => v.iter().position(|r| {
-                alias
-                    .iter()
-                    .map(|a| format!("-{}", a))
-                    .collect::<Vec<String>>()
-                    .contains(r)
-                    || r == &format!("--{}", &self.name)
+                r == &format!("--{}", &self.name) || alias.iter().any(|a| r == &format!("-{}", a))
             }),
             None => v.iter().position(|r| r == &format!("--{}", &self.name)),
         }
     }
 
     /// Get flag value
-    pub fn value(&self, v: &Vec<String>) -> Option<FlagValue> {
+    pub fn value(&self, v: &[String]) -> Option<FlagValue> {
         match self.flag_type {
             FlagType::Bool => match &self.alias {
                 Some(alias) => Some(FlagValue::Bool(
-                    alias
-                        .iter()
-                        .map(|a| v.contains(&format!("-{}", a)))
-                        .any(|b| b == true || v.contains(&format!("--{}", self.name))),
+                    v.contains(&format!("--{}", self.name))
+                        || alias.iter().any(|a| v.contains(&format!("-{}", a))),
                 )),
                 None => Some(FlagValue::Bool(v.contains(&format!("--{}", self.name)))),
             },
@@ -139,6 +132,29 @@ impl Flag {
 #[cfg(test)]
 mod tests {
     use crate::{Flag, FlagType, FlagValue};
+
+    #[test]
+    fn opiton_index() {
+        let v = vec![
+            "cli".to_string(),
+            "command".to_string(),
+            "-a".to_string(),
+            "--bool".to_string(),
+            "-c".to_string(),
+        ];
+        {
+            let f = Flag::new("bool", "", FlagType::Bool);
+            assert_eq!(f.option_index(&v), Some(3));
+        }
+        {
+            let f = Flag::new("age", "", FlagType::Bool).alias("a");
+            assert_eq!(f.option_index(&v), Some(2));
+        }
+        {
+            let f = Flag::new("dance", "", FlagType::Bool);
+            assert_eq!(f.option_index(&v), None);
+        }
+    }
 
     #[test]
     #[should_panic]

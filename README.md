@@ -87,10 +87,10 @@ fn hello_command() -> Command {
 
 ```bash
 $ cargo run
-$ cargo run John --bye
-$ cargo run John --age 30
-$ cargo run John -b -a 30
-$ cargo run John --age=30
+$ cargo run hello John --bye
+$ cargo run hello John --age 30
+$ cargo run hello John -b -a 30
+$ cargo run hello John --age=30
 ```
 
 ### Single action application
