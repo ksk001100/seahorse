@@ -230,11 +230,6 @@ impl App {
                     }
                 };
 
-                if cmd.is_empty() {
-                    self.help();
-                    return;
-                }
-
                 match self.select_command(&cmd) {
                     Some(command) => {
                         command.run(args_v.to_vec());
