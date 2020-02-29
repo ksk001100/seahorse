@@ -128,7 +128,10 @@ impl Flag {
             FlagType::Float => match self.option_index(&v) {
                 Some(index) => Some(FlagValue::Float(
                     v[index + 1].parse::<f64>().unwrap_or_else(|_| {
-                        panic!(format!("The value of `{}` flag should be float.", self.name))
+                        panic!(format!(
+                            "The value of `{}` flag should be float.",
+                            self.name
+                        ))
                     }),
                 )),
                 None => None,
