@@ -118,11 +118,22 @@ impl Flag {
                 None => None,
             },
             FlagType::Int => match self.option_index(&v) {
-                Some(index) => Some(FlagValue::Int(v[index + 1].parse::<isize>().unwrap())),
+                Some(index) => Some(FlagValue::Int(
+                    v[index + 1].parse::<isize>().unwrap_or_else(|_| {
+                        panic!(format!("The value of `{}` flag should be int.", self.name))
+                    }),
+                )),
                 None => None,
             },
             FlagType::Float => match self.option_index(&v) {
-                Some(index) => Some(FlagValue::Float(v[index + 1].parse::<f64>().unwrap())),
+                Some(index) => Some(FlagValue::Float(
+                    v[index + 1].parse::<f64>().unwrap_or_else(|_| {
+                        panic!(format!(
+                            "The value of `{}` flag should be float.",
+                            self.name
+                        ))
+                    }),
+                )),
                 None => None,
             },
         }
