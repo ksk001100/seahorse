@@ -1,14 +1,6 @@
 use crate::{Action, Command, Context, Flag};
 use std::io::{stdout, BufWriter, Write};
 
-/// Application type
-enum AppType {
-    Multiple,
-    Single,
-    Empty,
-    Undefined,
-}
-
 /// Multiple action application entry point
 pub struct App {
     /// Application name
@@ -23,10 +15,6 @@ pub struct App {
     pub version: String,
     /// Application commands
     pub commands: Option<Vec<Command>>,
-    /// Application action
-    pub action: Option<Action>,
-    /// Application flags
-    pub flags: Option<Vec<Flag>>,
 }
 
 impl Default for App {
@@ -38,8 +26,6 @@ impl Default for App {
             usage: String::default(),
             version: String::default(),
             commands: None,
-            action: None,
-            flags: None,
         }
     }
 }
@@ -157,42 +143,6 @@ impl App {
         self
     }
 
-    /// Set action of the app
-    ///
-    /// Example
-    ///
-    /// ```
-    /// use seahorse::{Action, App, Context};
-    ///
-    /// let action: Action = |c: &Context| println!("{:?}", c.args);
-    /// let app = App::new()
-    ///     .action(action);
-    /// ```
-    pub fn action(mut self, action: Action) -> Self {
-        self.action = Some(action);
-        self
-    }
-
-    /// Set flag of the app
-    ///
-    /// Example
-    ///
-    /// ```
-    /// use seahorse::{App, Flag, FlagType};
-    ///
-    /// let app = App::new()
-    ///     .flag(Flag::new("bool", "cli [arg] --bool", FlagType::Bool))
-    ///     .flag(Flag::new("int", "cli [arg] --int [int]", FlagType::Int));
-    /// ```
-    pub fn flag(mut self, flag: Flag) -> Self {
-        if let Some(ref mut flags) = self.flags {
-            (*flags).push(flag);
-        } else {
-            self.flags = Some(vec![flag]);
-        }
-        self
-    }
-
     /// Run app
     ///
     /// Example
@@ -212,59 +162,32 @@ impl App {
         }
 
         let args = Self::normalized_args(args);
-        match self.app_type() {
-            AppType::Multiple => {
-                let (cmd_v, args_v) = match args.len() {
-                    1 => {
-                        self.help();
-                        return;
-                    }
-                    _ => args[1..].split_at(1),
-                };
 
-                let cmd = match cmd_v.first() {
-                    Some(c) => c,
-                    None => {
-                        self.help();
-                        return;
-                    }
-                };
-
-                match self.select_command(&cmd) {
-                    Some(command) => {
-                        command.run(args_v.to_vec());
-                    }
-                    None => self.help(),
-                }
-            }
-            AppType::Single => {
-                let args_v = &args[1..];
-                match self.action {
-                    Some(action) => action(&Context::new(args_v.to_vec(), self.flags.clone())),
-                    None => self.help(),
-                }
-            }
-            AppType::Empty => {
+        let (cmd_v, args_v) = match args.len() {
+            1 => {
                 self.help();
+                return;
             }
-            AppType::Undefined => {
-                // TODO: I want to be able to check if there is a problem with the combination at compile time in the future (compile_error macro...)
-                panic!("Action and flags cannot be set if commands are set in App");
-            }
-        }
-    }
+            _ => args[1..].split_at(1),
+        };
 
-    /// Get application type
-    fn app_type(&self) -> AppType {
-        match (
-            &self.commands.is_some(),
-            &self.action.is_some(),
-            &self.flags.is_some(),
-        ) {
-            (true, false, false) => AppType::Multiple,
-            (false, true, _) => AppType::Single,
-            (false, false, false) => AppType::Empty,
-            _ => AppType::Undefined,
+        let cmd = match cmd_v.first() {
+            Some(c) => c,
+            None => {
+                self.help();
+                return;
+            }
+        };
+
+        match self.select_command(&cmd) {
+            Some(command) => {
+                if command.name.is_some() {
+                    command.run(args_v.to_vec());
+                } else {
+                    command.run(args[1..].to_vec());
+                }
+            }
+            None => self.help(),
         }
     }
 
@@ -283,31 +206,24 @@ impl App {
 
         writeln!(out, "Usage:\n\t{}", self.usage).unwrap();
 
-        match &self.commands {
-            Some(commands) => {
-                writeln!(out, "\nCommands:").unwrap();
-                for c in commands {
-                    writeln!(out, "\t{} : {}", c.name, c.usage).unwrap();
+        if let Some(ref commands) = &self.commands {
+            writeln!(out, "\nCommands:").unwrap();
 
-                    match &c.flags {
-                        Some(flags) => {
-                            for flag in flags {
-                                writeln!(out, "\t\t{}", flag.usage).unwrap();
-                            }
+            for c in commands {
+                match &c.name {
+                    Some(name) => writeln!(out, "\t{} : {}", name, c.usage).unwrap(),
+                    None => writeln!(out, "\t No command : {}", c.usage).unwrap()
+                }
+
+                match &c.flags {
+                    Some(flags) => {
+                        for flag in flags {
+                            writeln!(out, "\t\t{}", flag.usage).unwrap();
                         }
-                        None => (),
                     }
+                    None => (),
                 }
             }
-            None => match &self.flags {
-                Some(flags) => {
-                    for flag in flags {
-                        writeln!(out, "\t{}", flag.usage).unwrap();
-                    }
-                    writeln!(out).unwrap();
-                }
-                None => (),
-            },
         }
 
         writeln!(out, "Version:\n\t{}\n", self.version).unwrap();
@@ -317,7 +233,16 @@ impl App {
     /// Gets the Command that matches the string passed in the argument
     fn select_command(&self, cmd: &str) -> Option<&Command> {
         match &self.commands {
-            Some(commands) => commands.iter().find(|command| command.name == cmd),
+            Some(commands) => {
+                let command = commands
+                    .iter()
+                    .find(|command| command.name == Some(cmd.to_string()));
+
+                match command {
+                    Some(c) => Some(c),
+                    None => commands.iter().find(|c| c.name == None),
+                }
+            }
             None => None,
         }
     }
@@ -420,200 +345,6 @@ mod tests {
 
         assert_eq!(app.name, "test".to_string());
         assert_eq!(app.usage, "test [command] [arg]".to_string());
-        assert_eq!(app.author, "Author <author@example.com>".to_string());
-        assert_eq!(app.description, Some("This is a great tool.".to_string()));
-        assert_eq!(app.version, "0.0.1".to_string());
-    }
-
-    #[test]
-    fn single_app_test() {
-        let action: Action = |c: &Context| {
-            assert_eq!(true, c.bool_flag("bool"));
-            match c.string_flag("string") {
-                Some(flag) => assert_eq!("string".to_string(), flag),
-                None => assert!(false, "string test false..."),
-            }
-            match c.int_flag("int") {
-                Some(flag) => assert_eq!(100, flag),
-                None => assert!(false, "int test false..."),
-            }
-            match c.float_flag("float") {
-                Some(flag) => assert_eq!(1.23, flag),
-                None => assert!(false, "float test false..."),
-            }
-        };
-
-        let app = App::new()
-            .name("test")
-            .author("Author <author@example.com>")
-            .description("This is a great tool.")
-            .usage("test [arg]")
-            .version("0.0.1")
-            .action(action)
-            .flag(Flag::new(
-                "bool",
-                "test hello [args] --bool",
-                FlagType::Bool,
-            ))
-            .flag(Flag::new(
-                "string",
-                "test hello [args] --string [string value]",
-                FlagType::String,
-            ))
-            .flag(Flag::new(
-                "int",
-                "test hello [args] --int [int value]",
-                FlagType::Int,
-            ))
-            .flag(Flag::new(
-                "float",
-                "test hello [args] --float [float value]",
-                FlagType::Float,
-            ));
-
-        app.run(vec![
-            "test".to_string(),
-            "args".to_string(),
-            "--bool".to_string(),
-            "--string".to_string(),
-            "string".to_string(),
-            "--int".to_string(),
-            "100".to_string(),
-            "--float".to_string(),
-            "1.23".to_string(),
-        ]);
-
-        assert_eq!(app.name, "test".to_string());
-        assert_eq!(app.usage, "test [arg]".to_string());
-        assert_eq!(app.author, "Author <author@example.com>".to_string());
-        assert_eq!(app.description, Some("This is a great tool.".to_string()));
-        assert_eq!(app.version, "0.0.1".to_string());
-    }
-
-    #[test]
-    fn flag_only_app_test() {
-        let action: Action = |c: &Context| {
-            assert_eq!(true, c.bool_flag("bool"));
-            match c.string_flag("string") {
-                Some(flag) => assert_eq!("string".to_string(), flag),
-                None => assert!(false, "string test false..."),
-            }
-            match c.int_flag("int") {
-                Some(flag) => assert_eq!(100, flag),
-                None => assert!(false, "int test false..."),
-            }
-            match c.float_flag("float") {
-                Some(flag) => assert_eq!(1.23, flag),
-                None => assert!(false, "float test false..."),
-            }
-        };
-
-        let app = App::new()
-            .name("test")
-            .author("Author <author@example.com>")
-            .description("This is a great tool.")
-            .usage("test")
-            .version("0.0.1")
-            .action(action)
-            .flag(Flag::new(
-                "bool",
-                "test hello [args] --bool",
-                FlagType::Bool,
-            ))
-            .flag(Flag::new(
-                "string",
-                "test hello [args] --string [string value]",
-                FlagType::String,
-            ))
-            .flag(Flag::new(
-                "int",
-                "test hello [args] --int [int value]",
-                FlagType::Int,
-            ))
-            .flag(Flag::new(
-                "float",
-                "test hello [args] --float [float value]",
-                FlagType::Float,
-            ));
-
-        app.run(vec![
-            "test".to_string(),
-            "--bool".to_string(),
-            "--string".to_string(),
-            "string".to_string(),
-            "--int".to_string(),
-            "100".to_string(),
-            "--float".to_string(),
-            "1.23".to_string(),
-        ]);
-
-        assert_eq!(app.name, "test".to_string());
-        assert_eq!(app.usage, "test".to_string());
-        assert_eq!(app.author, "Author <author@example.com>".to_string());
-        assert_eq!(app.description, Some("This is a great tool.".to_string()));
-        assert_eq!(app.version, "0.0.1".to_string());
-    }
-
-    #[test]
-    fn single_app_equal_notation_test() {
-        let action: Action = |c: &Context| {
-            assert_eq!(true, c.bool_flag("bool"));
-            match c.string_flag("string") {
-                Some(flag) => assert_eq!("str=ing".to_string(), flag),
-                None => assert!(false, "string test false..."),
-            }
-            match c.int_flag("int") {
-                Some(flag) => assert_eq!(100, flag),
-                None => assert!(false, "int test false..."),
-            }
-            match c.float_flag("float") {
-                Some(flag) => assert_eq!(1.23, flag),
-                None => assert!(false, "float test false..."),
-            }
-        };
-
-        let app = App::new()
-            .name("test")
-            .author("Author <author@example.com>")
-            .description("This is a great tool.")
-            .usage("test [arg]")
-            .version("0.0.1")
-            .action(action)
-            .flag(Flag::new(
-                "bool",
-                "test hello [args] --bool",
-                FlagType::Bool,
-            ))
-            .flag(Flag::new(
-                "string",
-                "test hello [args] --string [string value]",
-                FlagType::String,
-            ))
-            .flag(Flag::new(
-                "int",
-                "test hello [args] --int [int value]",
-                FlagType::Int,
-            ))
-            .flag(
-                Flag::new(
-                    "float",
-                    "test hello [args] --float [float value]",
-                    FlagType::Float,
-                )
-                .alias("f"),
-            );
-
-        app.run(vec![
-            "test".to_string(),
-            "args".to_string(),
-            "--bool".to_string(),
-            "--string=str=ing".to_string(),
-            "--int=100".to_string(),
-            "-f=1.23".to_string(),
-        ]);
-
-        assert_eq!(app.name, "test".to_string());
-        assert_eq!(app.usage, "test [arg]".to_string());
         assert_eq!(app.author, "Author <author@example.com>".to_string());
         assert_eq!(app.description, Some("This is a great tool.".to_string()));
         assert_eq!(app.version, "0.0.1".to_string());

@@ -3,7 +3,7 @@ use crate::{Action, Context, Flag};
 /// Application command type
 pub struct Command {
     /// Command name
-    pub name: String,
+    pub name: Option<String>,
     /// Command usage
     pub usage: String,
     /// Command action
@@ -15,7 +15,7 @@ pub struct Command {
 impl Default for Command {
     fn default() -> Self {
         Self {
-            name: "".to_string(),
+            name: None,
             usage: "".to_string(),
             action: |c: &Context| println!("{:?}", c.args),
             flags: None,
@@ -48,7 +48,7 @@ impl Command {
     ///     .name("cmd");
     /// ```
     pub fn name<T: Into<String>>(mut self, name: T) -> Self {
-        self.name = name.into();
+        self.name = Some(name.into());
         self
     }
 
@@ -125,7 +125,7 @@ mod tests {
 
         &c.flags.unwrap()[0].value(&vec!["--hoge".to_string()]);
 
-        assert_eq!(c.name, "hello".to_string());
+        assert_eq!(c.name, Some("hello".to_string()));
         assert_eq!(c.usage, "test hello user".to_string());
     }
 }
