@@ -9,6 +9,7 @@ fn main() {
         .description(env!("CARGO_PKG_DESCRIPTION"))
         .usage("multiple_app [command] [arg]")
         .version(env!("CARGO_PKG_VERSION"))
+        .command(default_command())
         .command(hello_command());
 
     app.run(args);
@@ -42,4 +43,11 @@ fn hello_command() -> Command {
             .alias("a")
             .alias("ag"),
         )
+}
+
+fn default_command() -> Command {
+    Command::new()
+        .usage("multiple_app [args]")
+        .action(|c| println!("{:?} : {}", c.args, c.bool_flag("bool")))
+        .flag(Flag::new("bool", "multiple_app [args] --bool(-b)", FlagType::Bool).alias("b"))
 }

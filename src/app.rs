@@ -1,4 +1,4 @@
-use crate::{Action, Command, Context, Flag};
+use crate::Command;
 use std::io::{stdout, BufWriter, Write};
 
 /// Multiple action application entry point
@@ -162,12 +162,8 @@ impl App {
         }
 
         let args = Self::normalized_args(args);
-
         let (cmd_v, args_v) = match args.len() {
-            1 => {
-                self.help();
-                return;
-            }
+            1 => args.split_at(1),
             _ => args[1..].split_at(1),
         };
 
@@ -206,23 +202,32 @@ impl App {
 
         writeln!(out, "Usage:\n\t{}", self.usage).unwrap();
 
-        if let Some(ref commands) = &self.commands {
+        if let Some(commands) = &self.commands {
             writeln!(out, "\nCommands:").unwrap();
 
             for c in commands {
-                match &c.name {
-                    Some(name) => writeln!(out, "\t{} : {}", name, c.usage).unwrap(),
-                    None => writeln!(out, "\t No command : {}", c.usage).unwrap()
-                }
+                let name_len = match &c.name {
+                    Some(name) => {
+                        writeln!(out, "\t{} : {}", name, c.usage).unwrap();
+                        name.len() + 3
+                    }
+                    None => {
+                        writeln!(out, "\t(no command) : {}", c.usage).unwrap();
+                        // "(no command) : " length
+                        15
+                    }
+                };
 
                 match &c.flags {
                     Some(flags) => {
                         for flag in flags {
-                            writeln!(out, "\t\t{}", flag.usage).unwrap();
+                            writeln!(out, "\t{}{}", " ".repeat(name_len), flag.usage).unwrap();
                         }
                     }
                     None => (),
                 }
+
+                writeln!(out, "").unwrap();
             }
         }
 
