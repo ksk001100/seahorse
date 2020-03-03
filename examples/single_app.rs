@@ -1,4 +1,4 @@
-use seahorse::{color, App, Command, Context, Flag, FlagType};
+use seahorse::{color, App, Context, Flag, FlagType};
 use std::env;
 
 fn main() {
@@ -19,12 +19,8 @@ fn main() {
         .description(env!("CARGO_PKG_DESCRIPTION"))
         .usage("single_app [args]")
         .version(env!("CARGO_PKG_VERSION"))
-        .command(
-            Command::new()
-                .usage("single_app [args]")
-                .action(action)
-                .flag(Flag::new("bye", "single_app args --bye(-b)", FlagType::Bool).alias("b")),
-        );
+        .action(action)
+        .flag(Flag::new("bye", "single_app args --bye(-b)", FlagType::Bool).alias("b"));
 
     app.run(args);
 }
