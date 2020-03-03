@@ -1,4 +1,4 @@
-use crate::Command;
+use crate::{Action, Command, Context, Flag};
 use std::io::{stdout, BufWriter, Write};
 
 /// Multiple action application entry point
@@ -15,6 +15,10 @@ pub struct App {
     pub version: String,
     /// Application commands
     pub commands: Option<Vec<Command>>,
+    /// Application action
+    pub action: Option<Action>,
+    /// Application flags
+    pub flags: Option<Vec<Flag>>,
 }
 
 impl Default for App {
@@ -26,6 +30,8 @@ impl Default for App {
             usage: String::default(),
             version: String::default(),
             commands: None,
+            action: None,
+            flags: None,
         }
     }
 }
@@ -143,6 +149,42 @@ impl App {
         self
     }
 
+    /// Set action of the app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{Action, App, Context};
+    ///
+    /// let action: Action = |c: &Context| println!("{:?}", c.args);
+    /// let app = App::new()
+    ///     .action(action);
+    /// ```
+    pub fn action(mut self, action: Action) -> Self {
+        self.action = Some(action);
+        self
+    }
+
+    /// Set flag of the app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{App, Flag, FlagType};
+    ///
+    /// let app = App::new()
+    ///     .flag(Flag::new("bool", "cli [arg] --bool", FlagType::Bool))
+    ///     .flag(Flag::new("int", "cli [arg] --int [int]", FlagType::Int));
+    /// ```
+    pub fn flag(mut self, flag: Flag) -> Self {
+        if let Some(ref mut flags) = self.flags {
+            (*flags).push(flag);
+        } else {
+            self.flags = Some(vec![flag]);
+        }
+        self
+    }
+
     /// Run app
     ///
     /// Example
@@ -176,14 +218,11 @@ impl App {
         };
 
         match self.select_command(&cmd) {
-            Some(command) => {
-                if command.name.is_some() {
-                    command.run(args_v.to_vec());
-                } else {
-                    command.run(args[1..].to_vec());
-                }
-            }
-            None => self.help(),
+            Some(command) => command.run(args_v.to_vec()),
+            None => match self.action {
+                Some(action) => action(&Context::new(args[1..].to_vec(), self.flags.clone())),
+                None => self.help(),
+            },
         }
     }
 
@@ -202,52 +241,33 @@ impl App {
 
         writeln!(out, "Usage:\n\t{}", self.usage).unwrap();
 
+        if let Some(flags) = &self.flags {
+            for flag in flags {
+                writeln!(out, "\t{}", flag.usage).unwrap();
+            }
+            writeln!(out).unwrap();
+        }
+
         if let Some(commands) = &self.commands {
             writeln!(out, "\nCommands:").unwrap();
 
-            let no_command_len = 12;
-            let max_name_command = &commands.iter().max_by_key(|command| match &command.name {
-                Some(name) => name.len(),
-                None => no_command_len,
-            });
-
-            let name_max_len = match &max_name_command.unwrap().name {
-                Some(name) => name.len(),
-                None => no_command_len,
-            };
-
+            let name_max_len = &commands.iter().map(|c| c.name.len()).max().unwrap();
             let whitespace = " ".repeat(name_max_len + 3);
 
             for c in commands {
-                match &c.name {
-                    Some(name) => {
-                        writeln!(
-                            out,
-                            "\t{} {}: {}",
-                            name,
-                            " ".repeat(name_max_len - name.len()),
-                            c.usage
-                        )
-                        .unwrap();
-                    }
-                    None => {
-                        writeln!(
-                            out,
-                            "\t(no command) {}: {}",
-                            " ".repeat(name_max_len - no_command_len),
-                            c.usage
-                        )
-                        .unwrap();
-                    }
-                }
+                writeln!(
+                    out,
+                    "\t{} {}: {}",
+                    c.name,
+                    " ".repeat(name_max_len - c.name.len()),
+                    c.usage
+                )
+                .unwrap();
 
-                match &c.flags {
-                    Some(flags) => {
-                        for flag in flags {
-                            writeln!(out, "\t{}{}", whitespace, flag.usage).unwrap();
-                        }
+                if let Some(flags) = &c.flags {
+                    for flag in flags {
+                        writeln!(out, "\t{}{}", whitespace, flag.usage).unwrap();
                     }
-                    None => (),
                 }
 
                 writeln!(out).unwrap();
@@ -261,16 +281,7 @@ impl App {
     /// Gets the Command that matches the string passed in the argument
     fn select_command(&self, cmd: &str) -> Option<&Command> {
         match &self.commands {
-            Some(commands) => {
-                let command = commands
-                    .iter()
-                    .find(|command| command.name == Some(cmd.to_string()));
-
-                match command {
-                    Some(c) => Some(c),
-                    None => commands.iter().find(|c| c.name == None),
-                }
-            }
+            Some(commands) => commands.iter().find(|command| command.name == cmd),
             None => None,
         }
     }
