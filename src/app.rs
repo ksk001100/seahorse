@@ -205,29 +205,52 @@ impl App {
         if let Some(commands) = &self.commands {
             writeln!(out, "\nCommands:").unwrap();
 
+            let no_command_len = 12;
+            let max_name_command = &commands.iter().max_by_key(|command| match &command.name {
+                Some(name) => name.len(),
+                None => no_command_len,
+            });
+
+            let name_max_len = match &max_name_command.unwrap().name {
+                Some(name) => name.len(),
+                None => no_command_len,
+            };
+
+            let whitespace = " ".repeat(name_max_len + 3);
+
             for c in commands {
-                let name_len = match &c.name {
+                match &c.name {
                     Some(name) => {
-                        writeln!(out, "\t{} : {}", name, c.usage).unwrap();
-                        name.len() + 3
+                        writeln!(
+                            out,
+                            "\t{} {}: {}",
+                            name,
+                            " ".repeat(name_max_len - name.len()),
+                            c.usage
+                        )
+                        .unwrap();
                     }
                     None => {
-                        writeln!(out, "\t(no command) : {}", c.usage).unwrap();
-                        // "(no command) : " length
-                        15
+                        writeln!(
+                            out,
+                            "\t(no command) {}: {}",
+                            " ".repeat(name_max_len - no_command_len),
+                            c.usage
+                        )
+                        .unwrap();
                     }
-                };
+                }
 
                 match &c.flags {
                     Some(flags) => {
                         for flag in flags {
-                            writeln!(out, "\t{}{}", " ".repeat(name_len), flag.usage).unwrap();
+                            writeln!(out, "\t{}{}", whitespace, flag.usage).unwrap();
                         }
                     }
                     None => (),
                 }
 
-                writeln!(out, "").unwrap();
+                writeln!(out).unwrap();
             }
         }
 
