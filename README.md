@@ -14,6 +14,7 @@ A minimal CLI framework written in Rust
 ## Features
 - Easy to use
 - No dependencies
+- Typed flags(Bool, String, Int, Float)
 
 ## Documentation
 [Here](https://docs.rs/seahorse)
@@ -23,115 +24,194 @@ To use seahorse, add this to your Cargo.toml:
 
 ```toml
 [dependencies]
-seahorse = "0.6.2"
+seahorse = "0.7.0"
 ```
 
 ## Example
 
+### Run example
+
 ```bash
 $ git clone https://github.com/ksk001100/seahorse
 $ cd seahorse
-$ cargo run --example single_app
-$ cargo run --example multiple_app
+$ cargo run --example single_app -- --help
+$ cargo run --example multiple_app -- --help
 ```
 
-### Multiple action application
+### Quick Start
+
+```bash
+$ cargo new cli
+$ cd cli
+$ echo 'seahorse = "*"' >> Cargo.toml
+```
 
 ```rust
-use seahorse::{color, App, Command, Context, Flag, FlagType};
+use seahorse::{App};
+use std::env;
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+        let app = App::new()
+            .name(env!("CARGO_PKG_NAME"))
+            .author(env!("CARGO_PKG_AUTHORS"))
+            .version(env!("CARGO_PKG_VERSION"))
+            .usage("cli [args]")
+            .action(|c| println("Hello, {:?}", c.args));
+    
+        app.run(args);
+}
+```
+
+```bash
+$ cargo build --release
+$ ./target/release/cli --help
+$ ./target/release/cli John
+```
+
+### Multiple command application
+```rust
+use seahorse::{App, Context, Command, Flag, FlagType};
 use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     let app = App::new()
-        .name("multiple_app")
+        .name(env!("CARGO_PKG_NAME"))
         .author(env!("CARGO_PKG_AUTHORS"))
-        .description(env!("CARGO_PKG_DESCRIPTION"))
-        .usage("multiple_app [command] [arg]")
         .version(env!("CARGO_PKG_VERSION"))
-        .command(hello_command());
+        .usage("cli [name]")
+        .action(default_action)
+        .command(add_command())
+        .command(sub_command());
 
     app.run(args);
 }
 
-fn hello_action(c: &Context) {
-    let name = &c.args[0];
+fn default_action(c: &Context) {
+    println!("Hello, {:?}", c.args);
+}
+
+fn add_action(c: &Context) {
+    let sum: i32 = c.args.iter().map(|n| n.parse::<i32>().unwrap()).sum();
+    println!("{}", sum);
+}
+
+fn add_command() -> Command {
+    Command::new()
+        .name("add")
+        .usage("cli add [nums...]")
+        .action(add_action)
+}
+
+fn sub_action(c: &Context) {
+    let sum: i32 = c.args.iter().map(|n| n.parse::<i32>().unwrap() * -1).sum();
+    println!("{}", sum);
+}
+
+fn sub_command() -> Command {
+    Command::new()
+        .name("sub")
+        .usage("cli sub [nums...]")
+        .action(sub_action)
+}
+```
+
+```bash
+$ cli John
+Hello, ["John"]
+
+$ cli add 32 10 43
+85
+
+$ cli sub 12 23 89
+-124
+```
+
+### Branch processing by flag
+
+```rust
+use seahorse::{App, Command, Context, Flag, FlagType};
+use std::env;
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    let app = App::new()
+        .name(env!("CARGO_PKG_NAME"))
+        .author(env!("CARGO_PKG_AUTHORS"))
+        .version(env!("CARGO_PKG_VERSION"))
+        .usage("cli [name]")
+        .action(default_action)
+        .flag(Flag::new("bye", "cli [name] --bye(-b)", FlagType::Bool).alias("b"))
+        .flag(Flag::new("age", "cli [name] --age(-a)", FlagType::Int).alias("a"))
+        .command(calc_command());
+
+    app.run(args);
+}
+
+fn default_action(c: &Context) {
     if c.bool_flag("bye") {
-        println!("Bye, {}", name);
+        println!("Bye, {:?}", c.args);
     } else {
-        println!("Hello, {}", name);
+        println!("Hello, {:?}", c.args);
     }
 
-    match c.int_flag("age") {
-        Some(age) => println!("{} is {} years old", name, age),
-        None => println!("I don't know {}'s age", name),
+    if let Some(age) = c.int_flag("age") {
+        println!("{:?} is {} years old", c.args, age);
     }
 }
 
-fn hello_command() -> Command {
+fn calc_action(c: &Context) {
+    match c.string_flag("operator") {
+        Some(op) => {
+            let sum: i32 = match &*op {
+                "add" => c.args.iter().map(|n| n.parse::<i32>().unwrap()).sum(),
+                "sub" => c.args.iter().map(|n| n.parse::<i32>().unwrap() * -1).sum(),
+                _ => panic!("undefined operator..."),
+            };
+
+            println!("{}", sum);
+        }
+        None => panic!(),
+    }
+}
+
+fn calc_command() -> Command {
     Command::new()
-        .name("hello")
-        .usage("multiple_app hello [name]")
-        .action(hello_action)
-        .flag(Flag::new("bye", "multiple_app hello [name] --bye", FlagType::Bool).alias("b"))
+        .name("calc")
+        .usage("cli calc [nums...]")
+        .action(calc_action)
         .flag(
             Flag::new(
-                "age",
-                "multiple_app hello [name] --age [age]",
-                FlagType::Int,
+                "operator",
+                "cli calc [nums...] --operator(-op) [add | sub]",
+                FlagType::String,
             )
-            .alias("a"),
+            .alias("op"),
         )
 }
 ```
 
 ```bash
-$ cargo run
-$ cargo run hello John --bye
-$ cargo run hello John --age 30
-$ cargo run hello John -b -a 30
-$ cargo run hello John --age=30
-```
+$ cli John
+Hello, ["John"]
 
-### Single action application
-```rust
-use seahorse::{color, App, Context, Flag, FlagType};
-use std::env;
+$ cli John --bye
+Bye, ["John"]
 
-fn main() {
-    let args: Vec<String> = env::args().collect();
-    let app = App::new()
-        .name("single_app")
-        .author(env!("CARGO_PKG_AUTHORS"))
-        .description(env!("CARGO_PKG_DESCRIPTION"))
-        .usage("single_app [args]")
-        .version(env!("CARGO_PKG_VERSION"))
-        .action(action)
-        .flag(
-            Flag::new("bye", "single_app args --bye", FlagType::Bool)
-                .alias("b")
-                .alias("by"),
-        );
+$ cli John --age 10
+Hello, ["John"]
+["John"] is 10 years old
 
-    app.run(args);
-}
+$ cli John -b -a=40
+Bye, ["John"]
+["John"] is 40 years old
 
-fn action(c: &Context) {
-    let name = &c.args[0];
-    if c.bool_flag("bye") {
-        println!("Bye, {:?}", name);
-    } else {
-        println!("Hello, {:?}", name);
-    }
-}
+$ cli calc --operator add 1 2 3 4 5
+15
 
-```
-
-```bash
-$ cargo run
-$ cargo run Bob
-$ cargo run Bob --bye
-$ cargo run Bob -b
+$ cli calc -op sub 10 6 3 2
+-21
 ```
 
 ## Contributing
