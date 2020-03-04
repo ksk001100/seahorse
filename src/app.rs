@@ -1,14 +1,6 @@
 use crate::{Action, Command, Context, Flag};
 use std::io::{stdout, BufWriter, Write};
 
-/// Application type
-enum AppType {
-    Multiple,
-    Single,
-    Empty,
-    Undefined,
-}
-
 /// Multiple action application entry point
 pub struct App {
     /// Application name
@@ -212,59 +204,25 @@ impl App {
         }
 
         let args = Self::normalized_args(args);
-        match self.app_type() {
-            AppType::Multiple => {
-                let (cmd_v, args_v) = match args.len() {
-                    1 => {
-                        self.help();
-                        return;
-                    }
-                    _ => args[1..].split_at(1),
-                };
+        let (cmd_v, args_v) = match args.len() {
+            1 => args.split_at(1),
+            _ => args[1..].split_at(1),
+        };
 
-                let cmd = match cmd_v.first() {
-                    Some(c) => c,
-                    None => {
-                        self.help();
-                        return;
-                    }
-                };
-
-                match self.select_command(&cmd) {
-                    Some(command) => {
-                        command.run(args_v.to_vec());
-                    }
-                    None => self.help(),
-                }
-            }
-            AppType::Single => {
-                let args_v = &args[1..];
-                match self.action {
-                    Some(action) => action(&Context::new(args_v.to_vec(), self.flags.clone())),
-                    None => self.help(),
-                }
-            }
-            AppType::Empty => {
+        let cmd = match cmd_v.first() {
+            Some(c) => c,
+            None => {
                 self.help();
+                return;
             }
-            AppType::Undefined => {
-                // TODO: I want to be able to check if there is a problem with the combination at compile time in the future (compile_error macro...)
-                panic!("Action and flags cannot be set if commands are set in App");
-            }
-        }
-    }
+        };
 
-    /// Get application type
-    fn app_type(&self) -> AppType {
-        match (
-            &self.commands.is_some(),
-            &self.action.is_some(),
-            &self.flags.is_some(),
-        ) {
-            (true, false, false) => AppType::Multiple,
-            (false, true, _) => AppType::Single,
-            (false, false, false) => AppType::Empty,
-            _ => AppType::Undefined,
+        match self.select_command(&cmd) {
+            Some(command) => command.run(args_v.to_vec()),
+            None => match self.action {
+                Some(action) => action(&Context::new(args[1..].to_vec(), self.flags.clone())),
+                None => self.help(),
+            },
         }
     }
 
@@ -283,31 +241,37 @@ impl App {
 
         writeln!(out, "Usage:\n\t{}", self.usage).unwrap();
 
-        match &self.commands {
-            Some(commands) => {
-                writeln!(out, "\nCommands:").unwrap();
-                for c in commands {
-                    writeln!(out, "\t{} : {}", c.name, c.usage).unwrap();
-
-                    match &c.flags {
-                        Some(flags) => {
-                            for flag in flags {
-                                writeln!(out, "\t\t{}", flag.usage).unwrap();
-                            }
-                        }
-                        None => (),
-                    }
-                }
+        if let Some(flags) = &self.flags {
+            for flag in flags {
+                writeln!(out, "\t{}", flag.usage).unwrap();
             }
-            None => match &self.flags {
-                Some(flags) => {
+            writeln!(out).unwrap();
+        }
+
+        if let Some(commands) = &self.commands {
+            writeln!(out, "\nCommands:").unwrap();
+
+            let name_max_len = &commands.iter().map(|c| c.name.len()).max().unwrap();
+            let whitespace = " ".repeat(name_max_len + 3);
+
+            for c in commands {
+                writeln!(
+                    out,
+                    "\t{} {}: {}",
+                    c.name,
+                    " ".repeat(name_max_len - c.name.len()),
+                    c.usage
+                )
+                .unwrap();
+
+                if let Some(flags) = &c.flags {
                     for flag in flags {
-                        writeln!(out, "\t{}", flag.usage).unwrap();
+                        writeln!(out, "\t{}{}", whitespace, flag.usage).unwrap();
                     }
-                    writeln!(out).unwrap();
                 }
-                None => (),
-            },
+
+                writeln!(out).unwrap();
+            }
         }
 
         writeln!(out, "Version:\n\t{}\n", self.version).unwrap();

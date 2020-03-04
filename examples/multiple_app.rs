@@ -9,6 +9,9 @@ fn main() {
         .description(env!("CARGO_PKG_DESCRIPTION"))
         .usage("multiple_app [command] [arg]")
         .version(env!("CARGO_PKG_VERSION"))
+        .action(|c: &Context| println!("{:?} : {}", c.args, c.bool_flag("bool")))
+        .flag(Flag::new("bool", "multiple_app [args] --bool(-b)", FlagType::Bool).alias("b"))
+        .command(add_command())
         .command(hello_command());
 
     app.run(args);
@@ -42,4 +45,16 @@ fn hello_command() -> Command {
             .alias("a")
             .alias("ag"),
         )
+}
+
+fn add_action(c: &Context) {
+    let sum: i32 = c.args.iter().map(|n| n.parse::<i32>().unwrap()).sum();
+    println!("{}", sum);
+}
+
+fn add_command() -> Command {
+    Command::new()
+        .name("add")
+        .usage("multiple_app add [num...]")
+        .action(add_action)
 }
