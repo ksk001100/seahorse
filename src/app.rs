@@ -140,8 +140,39 @@ impl App {
     /// let app = App::new()
     ///     .command(command);
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// You cannot set a command named as same as registered ones.
+    ///
+    /// ```should_panic
+    /// use seahorse::{App, Command};
+    ///
+    /// let command1 = Command::new()
+    ///     .name("hello")
+    ///     .usage("cli hello [arg]")
+    ///     .action(|c| println!("{:?}", c.args));
+    ///
+    /// let command2 = Command::new()
+    ///     .name("hello")
+    ///     .usage("cli hello [arg]")
+    ///     .action(|c| println!("{:?}", c.args));
+    ///
+    /// let app = App::new()
+    ///     .command(command1)
+    ///     .command(command2);
+    /// ```
     pub fn command(mut self, command: Command) -> Self {
         if let Some(ref mut commands) = self.commands {
+            if commands
+                .iter()
+                .any(|registered| registered.name == command.name)
+            {
+                panic!(format!(
+                    r#"Command name "{}" is already registered."#,
+                    command.name
+                ));
+            }
             (*commands).push(command);
         } else {
             self.commands = Some(vec![command]);
