@@ -142,6 +142,12 @@ impl App {
     /// ```
     pub fn command(mut self, command: Command) -> Self {
         if let Some(ref mut commands) = self.commands {
+            if commands
+                .iter()
+                .any(|registered| registered.name == command.name)
+            {
+                panic!(format!(r#"Command name "{}" is already registered."#, command.name));
+            }
             (*commands).push(command);
         } else {
             self.commands = Some(vec![command]);
