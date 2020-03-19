@@ -156,10 +156,10 @@ mod tests {
             "1.23".to_string(),
         ];
         let flags = vec![
-            Flag::new("bool", "", FlagType::Bool),
-            Flag::new("string", "", FlagType::String),
-            Flag::new("int", "", FlagType::Int),
-            Flag::new("float", "", FlagType::Float),
+            Flag::new("bool", FlagType::Bool),
+            Flag::new("string", FlagType::String),
+            Flag::new("int", FlagType::Int),
+            Flag::new("float", FlagType::Float),
         ];
         let context = Context::new(args, Some(flags), "".to_string());
 

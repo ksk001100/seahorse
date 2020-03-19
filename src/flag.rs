@@ -6,7 +6,7 @@ pub struct Flag {
     /// Flag name
     pub name: String,
     /// Flag usage
-    pub usage: String,
+    pub usage: Option<String>,
     /// Flag type
     pub flag_type: FlagType,
     /// Flag alias
@@ -38,10 +38,10 @@ impl Flag {
     /// ```
     /// use seahorse::{Flag, FlagType};
     ///
-    /// let bool_flag = Flag::new("bool", "cli cmd [arg] --bool", FlagType::Bool);
-    /// let float_flag = Flag::new("float", "cli cmd [arg] --float [float]", FlagType::Float);
+    /// let bool_flag = Flag::new("bool", FlagType::Bool);
+    /// let float_flag = Flag::new("float", FlagType::Float);
     /// ```
-    pub fn new<T: Into<String>>(name: T, usage: T, flag_type: FlagType) -> Self {
+    pub fn new<T: Into<String>>(name: T, flag_type: FlagType) -> Self {
         let name = name.into();
         if name.starts_with('-') {
             panic!(format!(
@@ -64,10 +64,15 @@ impl Flag {
 
         Self {
             name,
-            usage: usage.into(),
+            usage: None,
             flag_type,
             alias: None,
         }
+    }
+
+    pub fn usage<T: Into<String>>(mut self, usage: T) -> Self {
+        self.usage = Some(usage.into());
+        self
     }
 
     /// Set alias of the flag
@@ -77,10 +82,10 @@ impl Flag {
     /// ```
     /// use seahorse::{Flag, FlagType};
     ///
-    /// let bool_flag = Flag::new("bool", "cli cmd [arg] --bool", FlagType::Bool)
+    /// let bool_flag = Flag::new("bool", FlagType::Bool)
     ///     .alias("b");
     ///
-    /// let string_flag = Flag::new("string", "cli cmd [arg] --string [string]", FlagType::String)
+    /// let string_flag = Flag::new("string", FlagType::String)
     ///     .alias("s")
     ///     .alias("str");
     /// ```
@@ -154,15 +159,15 @@ mod tests {
             "-c".to_string(),
         ];
         {
-            let f = Flag::new("bool", "", FlagType::Bool);
+            let f = Flag::new("bool", FlagType::Bool);
             assert_eq!(f.option_index(&v), Some(3));
         }
         {
-            let f = Flag::new("age", "", FlagType::Bool).alias("a");
+            let f = Flag::new("age", FlagType::Bool).alias("a");
             assert_eq!(f.option_index(&v), Some(2));
         }
         {
-            let f = Flag::new("dance", "", FlagType::Bool);
+            let f = Flag::new("dance", FlagType::Bool);
             assert_eq!(f.option_index(&v), None);
         }
     }
@@ -170,24 +175,24 @@ mod tests {
     #[test]
     #[should_panic]
     fn construct_fail_1() {
-        Flag::new("bo=ol", "", FlagType::Bool);
+        Flag::new("bo=ol", FlagType::Bool);
     }
 
     #[test]
     #[should_panic]
     fn construct_fail_2() {
-        Flag::new("------bool", "", FlagType::Bool);
+        Flag::new("------bool", FlagType::Bool);
     }
 
     #[test]
     #[should_panic]
     fn construct_fail_3() {
-        Flag::new("cool flag", "", FlagType::Bool);
+        Flag::new("cool flag", FlagType::Bool);
     }
 
     #[test]
     fn bool_flag_test() {
-        let bool_flag = Flag::new("bool", "", FlagType::Bool);
+        let bool_flag = Flag::new("bool", FlagType::Bool);
         let v = vec![
             "cli".to_string(),
             "command".to_string(),
@@ -203,7 +208,7 @@ mod tests {
 
     #[test]
     fn string_flag_test() {
-        let string_flag = Flag::new("string", "", FlagType::String);
+        let string_flag = Flag::new("string", FlagType::String);
         let v = vec![
             "cli".to_string(),
             "command".to_string(),
@@ -220,7 +225,7 @@ mod tests {
 
     #[test]
     fn int_flag_test() {
-        let int_flag = Flag::new("int", "", FlagType::Int);
+        let int_flag = Flag::new("int", FlagType::Int);
         let v = vec![
             "cli".to_string(),
             "command".to_string(),
@@ -237,7 +242,7 @@ mod tests {
 
     #[test]
     fn float_flag_test() {
-        let float_flag = Flag::new("float", "", FlagType::Float);
+        let float_flag = Flag::new("float", FlagType::Float);
         let v = vec![
             "cli".to_string(),
             "command".to_string(),

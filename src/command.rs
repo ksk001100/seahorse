@@ -69,8 +69,8 @@ impl Command {
     /// use seahorse::{Command, Flag, FlagType};
     ///
     /// let command = Command::new("cmd")
-    ///     .flag(Flag::new("bool", "cli [arg] --bool", FlagType::Bool))
-    ///     .flag(Flag::new("int", "cli [arg] --int [int]", FlagType::Int));
+    ///     .flag(Flag::new("bool", FlagType::Bool))
+    ///     .flag(Flag::new("int", FlagType::Int));
     /// ```
     pub fn flag(mut self, flag: Flag) -> Self {
         if let Some(ref mut flags) = self.flags {
@@ -101,7 +101,7 @@ mod tests {
         let c = Command::new("hello")
             .usage("test hello user")
             .action(a)
-            .flag(Flag::new("t", "t", FlagType::Bool));
+            .flag(Flag::new("t", FlagType::Bool));
 
         &c.flags.unwrap()[0].value(&vec!["--hoge".to_string()]);
 

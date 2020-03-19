@@ -120,17 +120,15 @@ impl App {
     /// ```should_panic
     /// use seahorse::{App, Command};
     ///
-    /// let command1 = Command::new()
-    ///     .name("hello")
+    /// let command1 = Command::new("hello")
     ///     .usage("cli hello [arg]")
     ///     .action(|c| println!("{:?}", c.args));
     ///
-    /// let command2 = Command::new()
-    ///     .name("hello")
+    /// let command2 = Command::new("hello")
     ///     .usage("cli hello [arg]")
     ///     .action(|c| println!("{:?}", c.args));
     ///
-    /// let app = App::new()
+    /// let app = App::new("cli")
     ///     .command(command1)
     ///     .command(command2);
     /// ```
@@ -176,8 +174,8 @@ impl App {
     /// use seahorse::{App, Flag, FlagType};
     ///
     /// let app = App::new("cli")
-    ///     .flag(Flag::new("bool", "cli [arg] --bool", FlagType::Bool))
-    ///     .flag(Flag::new("int", "cli [arg] --int [int]", FlagType::Int));
+    ///     .flag(Flag::new("bool", FlagType::Bool))
+    ///     .flag(Flag::new("int", FlagType::Int));
     /// ```
     pub fn flag(mut self, flag: Flag) -> Self {
         if let Some(ref mut flags) = self.flags {
@@ -252,7 +250,9 @@ impl App {
 
         if let Some(flags) = &self.flags {
             for flag in flags {
-                text += &format!("\t{}\n", flag.usage);
+                if let Some(usage) = &flag.usage {
+                    text += &format!("\t{}\n", usage);
+                }
             }
             text += "\n";
         }
@@ -280,7 +280,11 @@ impl App {
 
                 if let Some(flags) = &c.flags {
                     for flag in flags {
-                        text += &format!("\t{}{}\n", whitespace, flag.usage);
+                        let usage = match &flag.usage {
+                            Some(usage) => usage,
+                            None => "",
+                        };
+                        text += &format!("\t{}{}\n", whitespace, usage);
                     }
                 }
 
@@ -363,26 +367,10 @@ mod tests {
         let c = Command::new("hello")
             .usage("test hello args")
             .action(a)
-            .flag(Flag::new(
-                "bool",
-                "test hello [args] --bool",
-                FlagType::Bool,
-            ))
-            .flag(Flag::new(
-                "string",
-                "test hello [args] --string [string value]",
-                FlagType::String,
-            ))
-            .flag(Flag::new(
-                "int",
-                "test hello [args] --int [int value]",
-                FlagType::Int,
-            ))
-            .flag(Flag::new(
-                "float",
-                "test hello [args] --float [float value]",
-                FlagType::Float,
-            ));
+            .flag(Flag::new("bool", FlagType::Bool))
+            .flag(Flag::new("string", FlagType::String))
+            .flag(Flag::new("int", FlagType::Int))
+            .flag(Flag::new("float", FlagType::Float));
 
         let app = App::new("test")
             .author("Author <author@example.com>")
@@ -435,26 +423,10 @@ mod tests {
             .usage("test [arg]")
             .version("0.0.1")
             .action(action)
-            .flag(Flag::new(
-                "bool",
-                "test hello [args] --bool",
-                FlagType::Bool,
-            ))
-            .flag(Flag::new(
-                "string",
-                "test hello [args] --string [string value]",
-                FlagType::String,
-            ))
-            .flag(Flag::new(
-                "int",
-                "test hello [args] --int [int value]",
-                FlagType::Int,
-            ))
-            .flag(Flag::new(
-                "float",
-                "test hello [args] --float [float value]",
-                FlagType::Float,
-            ));
+            .flag(Flag::new("bool", FlagType::Bool))
+            .flag(Flag::new("string", FlagType::String))
+            .flag(Flag::new("int", FlagType::Int))
+            .flag(Flag::new("float", FlagType::Float));
 
         app.run(vec![
             "test".to_string(),
@@ -499,26 +471,10 @@ mod tests {
             .usage("test")
             .version("0.0.1")
             .action(action)
-            .flag(Flag::new(
-                "bool",
-                "test hello [args] --bool",
-                FlagType::Bool,
-            ))
-            .flag(Flag::new(
-                "string",
-                "test hello [args] --string [string value]",
-                FlagType::String,
-            ))
-            .flag(Flag::new(
-                "int",
-                "test hello [args] --int [int value]",
-                FlagType::Int,
-            ))
-            .flag(Flag::new(
-                "float",
-                "test hello [args] --float [float value]",
-                FlagType::Float,
-            ));
+            .flag(Flag::new("bool", FlagType::Bool))
+            .flag(Flag::new("string", FlagType::String))
+            .flag(Flag::new("int", FlagType::Int))
+            .flag(Flag::new("float", FlagType::Float));
 
         app.run(vec![
             "test".to_string(),
@@ -562,29 +518,10 @@ mod tests {
             .usage("test [arg]")
             .version("0.0.1")
             .action(action)
-            .flag(Flag::new(
-                "bool",
-                "test hello [args] --bool",
-                FlagType::Bool,
-            ))
-            .flag(Flag::new(
-                "string",
-                "test hello [args] --string [string value]",
-                FlagType::String,
-            ))
-            .flag(Flag::new(
-                "int",
-                "test hello [args] --int [int value]",
-                FlagType::Int,
-            ))
-            .flag(
-                Flag::new(
-                    "float",
-                    "test hello [args] --float [float value]",
-                    FlagType::Float,
-                )
-                .alias("f"),
-            );
+            .flag(Flag::new("bool", FlagType::Bool))
+            .flag(Flag::new("string", FlagType::String))
+            .flag(Flag::new("int", FlagType::Int))
+            .flag(Flag::new("float", FlagType::Float).alias("f"));
 
         app.run(vec![
             "test".to_string(),

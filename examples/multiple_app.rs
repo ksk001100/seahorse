@@ -9,7 +9,11 @@ fn main() {
         .usage("multiple_app [command] [arg]")
         .version(env!("CARGO_PKG_VERSION"))
         .action(|c: &Context| println!("{:?} : {}", c.args, c.bool_flag("bool")))
-        .flag(Flag::new("bool", "multiple_app [args] --bool(-b)", FlagType::Bool).alias("b"))
+        .flag(
+            Flag::new("bool", FlagType::Bool)
+                .usage("multiple_app [args] --bool(-b)")
+                .alias("b"),
+        )
         .command(add_command())
         .command(hello_command());
 
@@ -33,15 +37,16 @@ fn hello_command() -> Command {
     Command::new("hello")
         .usage("multiple_app hello [name]")
         .action(hello_action)
-        .flag(Flag::new("bye", "multiple_app hello [name] --bye(-b)", FlagType::Bool).alias("b"))
         .flag(
-            Flag::new(
-                "age",
-                "multiple_app hello [name] --age(-a, -ag) [age]",
-                FlagType::Int,
-            )
-            .alias("a")
-            .alias("ag"),
+            Flag::new("bye", FlagType::Bool)
+                .usage("multiple_app hello [name] --bye(-b)")
+                .alias("b"),
+        )
+        .flag(
+            Flag::new("age", FlagType::Int)
+                .usage("multiple_app hello [name] --age(-a, -ag) [age]")
+                .alias("a")
+                .alias("ag"),
         )
 }
 
