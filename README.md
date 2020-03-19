@@ -52,8 +52,7 @@ use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-        let app = App::new()
-            .name(env!("CARGO_PKG_NAME"))
+        let app = App::new(env!("CARGO_PKG_NAME"))
             .author(env!("CARGO_PKG_AUTHORS"))
             .version(env!("CARGO_PKG_VERSION"))
             .usage("cli [args]")
@@ -71,13 +70,12 @@ $ ./target/release/cli John
 
 ### Multiple command application
 ```rust
-use seahorse::{App, Context, Command, Flag, FlagType};
+use seahorse::{App, Context, Command};
 use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let app = App::new()
-        .name(env!("CARGO_PKG_NAME"))
+    let app = App::new(env!("CARGO_PKG_NAME"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .version(env!("CARGO_PKG_VERSION"))
         .usage("cli [name]")
@@ -98,8 +96,7 @@ fn add_action(c: &Context) {
 }
 
 fn add_command() -> Command {
-    Command::new()
-        .name("add")
+    Command::new("add")
         .usage("cli add [nums...]")
         .action(add_action)
 }
@@ -110,8 +107,7 @@ fn sub_action(c: &Context) {
 }
 
 fn sub_command() -> Command {
-    Command::new()
-        .name("sub")
+    Command::new("sub")
         .usage("cli sub [nums...]")
         .action(sub_action)
 }
@@ -136,14 +132,21 @@ use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let app = App::new()
-        .name(env!("CARGO_PKG_NAME"))
+    let app = App::new(env!("CARGO_PKG_NAME"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .version(env!("CARGO_PKG_VERSION"))
         .usage("cli [name]")
         .action(default_action)
-        .flag(Flag::new("bye", "cli [name] --bye(-b)", FlagType::Bool).alias("b"))
-        .flag(Flag::new("age", "cli [name] --age(-a)", FlagType::Int).alias("a"))
+        .flag(
+            Flag::new("bye", FlagType::Bool)
+                .usage("cli [name] --bye(-b)")
+                .alias("b"),
+        )
+        .flag(
+            Flag::new("age", FlagType::Int)
+                .usage("cli [name] --age(-a)")
+                .alias("a"),
+        )
         .command(calc_command());
 
     app.run(args);
@@ -172,22 +175,18 @@ fn calc_action(c: &Context) {
 
             println!("{}", sum);
         }
-        None => panic!(),
+        None => panic!("undefined operator..."),
     }
 }
 
 fn calc_command() -> Command {
-    Command::new()
-        .name("calc")
+    Command::new("calc")
         .usage("cli calc [nums...]")
         .action(calc_action)
         .flag(
-            Flag::new(
-                "operator",
-                "cli calc [nums...] --operator(-op) [add | sub]",
-                FlagType::String,
-            )
-            .alias("op"),
+            Flag::new("operator", FlagType::String)
+                .usage("cli calc [nums...] --operator(-op) [add | sub]")
+                .alias("op"),
         )
 }
 ```
