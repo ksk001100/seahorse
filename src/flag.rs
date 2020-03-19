@@ -70,6 +70,16 @@ impl Flag {
         }
     }
 
+    /// Set usage of the flag
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{Flag, FlagType};
+    ///
+    /// let bool_flag = Flag::new("bool", FlagType::Bool)
+    ///     .usage("cli cmd Hello --bool");
+    /// ```
     pub fn usage<T: Into<String>>(mut self, usage: T) -> Self {
         self.usage = Some(usage.into());
         self

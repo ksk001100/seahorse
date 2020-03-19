@@ -133,6 +133,17 @@ impl Context {
         }
     }
 
+    /// Display help
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::Context;
+    ///
+    /// fn action(c: &Context) {
+    ///     c.help();
+    /// }
+    /// ```
     pub fn help(&self) {
         println!("{}", self.help_text);
     }

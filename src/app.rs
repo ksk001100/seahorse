@@ -231,6 +231,7 @@ impl App {
         }
     }
 
+    /// Generate help text
     fn generate_help_text(&self) -> String {
         let mut text = String::new();
 
