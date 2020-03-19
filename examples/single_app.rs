@@ -13,8 +13,7 @@ fn main() {
      ╚═════╝╚══════╝╚═╝",
     );
 
-    let app = App::new()
-        .name(name)
+    let app = App::new(name)
         .author(env!("CARGO_PKG_AUTHORS"))
         .description(env!("CARGO_PKG_DESCRIPTION"))
         .usage("single_app [args]")

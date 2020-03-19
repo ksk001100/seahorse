@@ -1,39 +1,24 @@
 use crate::{Action, Command, Context, Flag};
-use std::io::{stdout, BufWriter, Write};
 
 /// Multiple action application entry point
+#[derive(Default)]
 pub struct App {
     /// Application name
     pub name: String,
     /// Application author
-    pub author: String,
+    pub author: Option<String>,
     /// Application description
     pub description: Option<String>,
     /// Application usage
-    pub usage: String,
+    pub usage: Option<String>,
     /// Application version
-    pub version: String,
+    pub version: Option<String>,
     /// Application commands
     pub commands: Option<Vec<Command>>,
     /// Application action
     pub action: Option<Action>,
     /// Application flags
     pub flags: Option<Vec<Flag>>,
-}
-
-impl Default for App {
-    fn default() -> Self {
-        Self {
-            name: String::default(),
-            author: String::default(),
-            description: None,
-            usage: String::default(),
-            version: String::default(),
-            commands: None,
-            action: None,
-            flags: None,
-        }
-    }
 }
 
 impl App {
@@ -44,25 +29,13 @@ impl App {
     /// ```
     /// use seahorse::App;
     ///
-    /// let app = App::new();
+    /// let app = App::new("cli");
     /// ```
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Set name of the app
-    ///
-    /// Example
-    ///
-    /// ```
-    /// use seahorse::App;
-    ///
-    /// let app = App::new()
-    ///     .name("cli");
-    /// ```
-    pub fn name<T: Into<String>>(mut self, name: T) -> Self {
-        self.name = name.into();
-        self
+    pub fn new<T: Into<String>>(name: T) -> Self {
+        Self {
+            name: name.into(),
+            ..Self::default()
+        }
     }
 
     /// Set author of the app
@@ -72,11 +45,11 @@ impl App {
     /// ```
     /// use seahorse::App;
     ///
-    /// let app = App::new()
+    /// let app = App::new("cli")
     ///     .author(env!("CARGO_PKG_AUTHORS"));
     /// ```
     pub fn author<T: Into<String>>(mut self, author: T) -> Self {
-        self.author = author.into();
+        self.author = Some(author.into());
         self
     }
 
@@ -87,7 +60,7 @@ impl App {
     /// ```
     /// use seahorse::App;
     ///
-    /// let app = App::new()
+    /// let app = App::new("cli")
     ///     .description(env!("CARGO_PKG_DESCRIPTION"));
     /// ```
     pub fn description<T: Into<String>>(mut self, description: T) -> Self {
@@ -102,11 +75,11 @@ impl App {
     /// ```
     /// use seahorse::App;
     ///
-    /// let app = App::new();
+    /// let app = App::new("cli");
     /// app.usage("cli [command] [arg]");
     /// ```
     pub fn usage<T: Into<String>>(mut self, usage: T) -> Self {
-        self.usage = usage.into();
+        self.usage = Some(usage.into());
         self
     }
 
@@ -117,11 +90,11 @@ impl App {
     /// ```
     /// use seahorse::App;
     ///
-    /// let app = App::new();
+    /// let app = App::new("cli");
     /// app.version(env!("CARGO_PKG_VERSION"));
     /// ```
     pub fn version<T: Into<String>>(mut self, version: T) -> Self {
-        self.version = version.into();
+        self.version = Some(version.into());
         self
     }
 
@@ -132,12 +105,11 @@ impl App {
     /// ```
     /// use seahorse::{App, Command};
     ///
-    /// let command = Command::new()
-    ///     .name("hello")
+    /// let command = Command::new("hello")
     ///     .usage("cli hello [arg]")
     ///     .action(|c| println!("{:?}", c.args));
     ///
-    /// let app = App::new()
+    /// let app = App::new("cli")
     ///     .command(command);
     /// ```
     pub fn command(mut self, command: Command) -> Self {
@@ -157,7 +129,7 @@ impl App {
     /// use seahorse::{Action, App, Context};
     ///
     /// let action: Action = |c: &Context| println!("{:?}", c.args);
-    /// let app = App::new()
+    /// let app = App::new("cli")
     ///     .action(action);
     /// ```
     pub fn action(mut self, action: Action) -> Self {
@@ -172,7 +144,7 @@ impl App {
     /// ```
     /// use seahorse::{App, Flag, FlagType};
     ///
-    /// let app = App::new()
+    /// let app = App::new("cli")
     ///     .flag(Flag::new("bool", "cli [arg] --bool", FlagType::Bool))
     ///     .flag(Flag::new("int", "cli [arg] --int [int]", FlagType::Int));
     /// ```
@@ -194,7 +166,7 @@ impl App {
     /// use seahorse::App;
     ///
     /// let args: Vec<String> = env::args().collect();
-    /// let app = App::new();
+    /// let app = App::new("cli");
     /// app.run(args);
     /// ```
     pub fn run(&self, args: Vec<String>) {
@@ -218,63 +190,84 @@ impl App {
         };
 
         match self.select_command(&cmd) {
-            Some(command) => command.run(args_v.to_vec()),
+            Some(command) => command.run(args_v.to_vec(), self.generate_help_text()),
             None => match self.action {
-                Some(action) => action(&Context::new(args[1..].to_vec(), self.flags.clone())),
+                Some(action) => action(&Context::new(
+                    args[1..].to_vec(),
+                    self.flags.clone(),
+                    self.generate_help_text(),
+                )),
                 None => self.help(),
             },
         }
     }
 
-    /// Application help
-    /// Displays information about the application
-    fn help(&self) {
-        let out = stdout();
-        let mut out = BufWriter::new(out.lock());
+    fn generate_help_text(&self) -> String {
+        let mut text = String::new();
 
-        writeln!(out, "Name:\n\t{}\n", self.name).unwrap();
-        writeln!(out, "Author:\n\t{}\n", self.author).unwrap();
+        text += &format!("Name\n\t{}\n\n", self.name);
 
-        if let Some(description) = self.description.to_owned() {
-            writeln!(out, "Description:\n\t{}\n", description).unwrap();
+        if let Some(author) = &self.author {
+            text += &format!("Author:\n\t{}\n\n", author);
         }
 
-        writeln!(out, "Usage:\n\t{}", self.usage).unwrap();
+        if let Some(description) = &self.description {
+            text += &format!("Description:\n\t{}\n\n", description);
+        }
+
+        if let Some(usage) = &self.usage {
+            text += &format!("Usage:\n\t{}\n", usage)
+        }
 
         if let Some(flags) = &self.flags {
             for flag in flags {
-                writeln!(out, "\t{}", flag.usage).unwrap();
+                text += &format!("\t{}\n", flag.usage);
             }
-            writeln!(out).unwrap();
+            text += "\n";
         }
 
         if let Some(commands) = &self.commands {
-            writeln!(out, "\nCommands:").unwrap();
+            text += "\nCommands:\n";
 
             let name_max_len = &commands.iter().map(|c| c.name.len()).max().unwrap();
             let whitespace = " ".repeat(name_max_len + 3);
 
             for c in commands {
-                writeln!(
-                    out,
-                    "\t{} {}: {}",
+                let command_name_len = c.name.len();
+
+                let usage = match &c.usage {
+                    Some(usage) => usage,
+                    None => "",
+                };
+
+                text += &format!(
+                    "\t{} {}: {}\n",
                     c.name,
-                    " ".repeat(name_max_len - c.name.len()),
-                    c.usage
-                )
-                .unwrap();
+                    " ".repeat(name_max_len - command_name_len),
+                    usage
+                );
 
                 if let Some(flags) = &c.flags {
                     for flag in flags {
-                        writeln!(out, "\t{}{}", whitespace, flag.usage).unwrap();
+                        text += &format!("\t{}{}\n", whitespace, flag.usage);
                     }
                 }
 
-                writeln!(out).unwrap();
+                text += "\n";
             }
         }
 
-        writeln!(out, "Version:\n\t{}\n", self.version).unwrap();
+        if let Some(version) = &self.version {
+            text += &format!("Version:\n\t{}\n", version);
+        }
+
+        text
+    }
+
+    /// Application help
+    /// Displays information about the application
+    fn help(&self) {
+        println!("{}", self.generate_help_text());
     }
 
     /// Select command
@@ -309,14 +302,14 @@ mod tests {
 
     #[test]
     fn app_new_only_test() {
-        let app = App::new();
+        let app = App::new("cli");
         app.run(vec!["cli".to_string()]);
 
-        assert_eq!(app.name, "".to_string());
-        assert_eq!(app.usage, "".to_string());
-        assert_eq!(app.author, "".to_string());
+        assert_eq!(app.name, "cli".to_string());
+        assert_eq!(app.usage, None);
+        assert_eq!(app.author, None);
         assert_eq!(app.description, None);
-        assert_eq!(app.version, "".to_string());
+        assert_eq!(app.version, None);
     }
 
     #[test]
@@ -336,8 +329,7 @@ mod tests {
                 None => assert!(false, "float test false..."),
             }
         };
-        let c = Command::new()
-            .name("hello")
+        let c = Command::new("hello")
             .usage("test hello args")
             .action(a)
             .flag(Flag::new(
@@ -361,8 +353,7 @@ mod tests {
                 FlagType::Float,
             ));
 
-        let app = App::new()
-            .name("test")
+        let app = App::new("test")
             .author("Author <author@example.com>")
             .description("This is a great tool.")
             .usage("test [command] [arg]")
@@ -383,10 +374,10 @@ mod tests {
         ]);
 
         assert_eq!(app.name, "test".to_string());
-        assert_eq!(app.usage, "test [command] [arg]".to_string());
-        assert_eq!(app.author, "Author <author@example.com>".to_string());
+        assert_eq!(app.usage, Some("test [command] [arg]".to_string()));
+        assert_eq!(app.author, Some("Author <author@example.com>".to_string()));
         assert_eq!(app.description, Some("This is a great tool.".to_string()));
-        assert_eq!(app.version, "0.0.1".to_string());
+        assert_eq!(app.version, Some("0.0.1".to_string()));
     }
 
     #[test]
@@ -407,8 +398,7 @@ mod tests {
             }
         };
 
-        let app = App::new()
-            .name("test")
+        let app = App::new("test")
             .author("Author <author@example.com>")
             .description("This is a great tool.")
             .usage("test [arg]")
@@ -448,10 +438,10 @@ mod tests {
         ]);
 
         assert_eq!(app.name, "test".to_string());
-        assert_eq!(app.usage, "test [arg]".to_string());
-        assert_eq!(app.author, "Author <author@example.com>".to_string());
+        assert_eq!(app.usage, Some("test [arg]".to_string()));
+        assert_eq!(app.author, Some("Author <author@example.com>".to_string()));
         assert_eq!(app.description, Some("This is a great tool.".to_string()));
-        assert_eq!(app.version, "0.0.1".to_string());
+        assert_eq!(app.version, Some("0.0.1".to_string()));
     }
 
     #[test]
@@ -472,8 +462,7 @@ mod tests {
             }
         };
 
-        let app = App::new()
-            .name("test")
+        let app = App::new("test")
             .author("Author <author@example.com>")
             .description("This is a great tool.")
             .usage("test")
@@ -512,10 +501,10 @@ mod tests {
         ]);
 
         assert_eq!(app.name, "test".to_string());
-        assert_eq!(app.usage, "test".to_string());
-        assert_eq!(app.author, "Author <author@example.com>".to_string());
+        assert_eq!(app.usage, Some("test".to_string()));
+        assert_eq!(app.author, Some("Author <author@example.com>".to_string()));
         assert_eq!(app.description, Some("This is a great tool.".to_string()));
-        assert_eq!(app.version, "0.0.1".to_string());
+        assert_eq!(app.version, Some("0.0.1".to_string()));
     }
 
     #[test]
@@ -536,8 +525,7 @@ mod tests {
             }
         };
 
-        let app = App::new()
-            .name("test")
+        let app = App::new("test")
             .author("Author <author@example.com>")
             .description("This is a great tool.")
             .usage("test [arg]")
@@ -577,9 +565,9 @@ mod tests {
         ]);
 
         assert_eq!(app.name, "test".to_string());
-        assert_eq!(app.usage, "test [arg]".to_string());
-        assert_eq!(app.author, "Author <author@example.com>".to_string());
+        assert_eq!(app.usage, Some("test [arg]".to_string()));
+        assert_eq!(app.author, Some("Author <author@example.com>".to_string()));
         assert_eq!(app.description, Some("This is a great tool.".to_string()));
-        assert_eq!(app.version, "0.0.1".to_string());
+        assert_eq!(app.version, Some("0.0.1".to_string()));
     }
 }

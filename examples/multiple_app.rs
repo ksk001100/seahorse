@@ -3,8 +3,7 @@ use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let app = App::new()
-        .name(color::yellow("multiple_app"))
+    let app = App::new(color::yellow("multiple_app"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .description(env!("CARGO_PKG_DESCRIPTION"))
         .usage("multiple_app [command] [arg]")
@@ -31,8 +30,7 @@ fn hello_action(c: &Context) {
 }
 
 fn hello_command() -> Command {
-    Command::new()
-        .name("hello")
+    Command::new("hello")
         .usage("multiple_app hello [name]")
         .action(hello_action)
         .flag(Flag::new("bye", "multiple_app hello [name] --bye(-b)", FlagType::Bool).alias("b"))
@@ -53,8 +51,7 @@ fn add_action(c: &Context) {
 }
 
 fn add_command() -> Command {
-    Command::new()
-        .name("add")
+    Command::new("add")
         .usage("multiple_app add [num...]")
         .action(add_action)
 }
