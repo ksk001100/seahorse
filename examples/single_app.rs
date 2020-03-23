@@ -13,14 +13,17 @@ fn main() {
      ╚═════╝╚══════╝╚═╝",
     );
 
-    let app = App::new()
-        .name(name)
+    let app = App::new(name)
         .author(env!("CARGO_PKG_AUTHORS"))
         .description(env!("CARGO_PKG_DESCRIPTION"))
         .usage("single_app [args]")
         .version(env!("CARGO_PKG_VERSION"))
         .action(action)
-        .flag(Flag::new("bye", "single_app args --bye(-b)", FlagType::Bool).alias("b"));
+        .flag(
+            Flag::new("bye", FlagType::Bool)
+                .usage("single_app args --bye(-b)")
+                .alias("b"),
+        );
 
     app.run(args);
 }
