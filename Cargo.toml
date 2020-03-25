@@ -1,6 +1,6 @@
 [package]
 name = "seahorse"
-version = "0.7.0"
+version = "0.7.1"
 authors = ["ksk001100 <hm.pudding0715@gmail.com>"]
 edition = "2018"
 keywords = [
