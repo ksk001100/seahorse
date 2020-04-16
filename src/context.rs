@@ -32,7 +32,14 @@ impl Context {
                 for flag in flags {
                     if let Some(index) = flag.option_index(&parsed_args) {
                         parsed_args.remove(index);
+
                         if flag.flag_type != FlagType::Bool {
+                            if parsed_args.is_empty() {
+                                panic!(format!(
+                                    r#"Require to specify an argument for "--{}"."#,
+                                    flag.name
+                                ));
+                            }
                             parsed_args.remove(index);
                         }
                     }
@@ -194,5 +201,23 @@ mod tests {
             Some(val) => assert_eq!(1.23, val),
             _ => assert!(false),
         }
+    }
+
+    #[test]
+    #[should_panic]
+    fn argument_fail() {
+        let args = vec![
+            "cli".to_string(),
+            "command".to_string(),
+            "args".to_string(),
+            "--bool".to_string(),
+            "--string".to_string(),
+        ];
+        let flags = vec![
+            Flag::new("bool", "", FlagType::Bool),
+            Flag::new("string", "", FlagType::String),
+        ];
+
+        Context::new(args, Some(flags));
     }
 }
