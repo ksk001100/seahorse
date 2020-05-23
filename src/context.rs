@@ -8,23 +8,13 @@ pub struct Context {
     pub args: Vec<String>,
     /// `Vec` that stores flag name and flag value as tuple
     flags: Option<Vec<(String, Result<FlagValue, String>)>>,
+    help_text: String,
 }
 
 impl Context {
     /// Create new instance of `Context`
     /// Parse processing using `Vec<String>` command line argument and `Vec<Flag>` as arguments
-    ///
-    /// Example
-    ///
-    /// ```
-    /// use std::env;
-    /// use seahorse::{Context, Flag, FlagType};
-    ///
-    /// let args: Vec<String> = env::args().collect();
-    /// let flag = Flag::new("bool", "cli cmd [arg] --bool", FlagType::Bool);
-    /// let context = Context::new(args, Some(vec![flag]));
-    /// ```
-    pub fn new(args: Vec<String>, flags: Option<Vec<Flag>>) -> Self {
+    pub fn new(args: Vec<String>, flags: Option<Vec<Flag>>, help_text: String) -> Self {
         let mut v = Vec::new();
         let mut parsed_args = args.clone();
         let flags_val = match flags {
@@ -53,6 +43,7 @@ impl Context {
         Self {
             args: parsed_args,
             flags: flags_val,
+            help_text,
         }
     }
 
@@ -74,15 +65,14 @@ impl Context {
     /// Example
     ///
     /// ```
-    /// use std::env;
-    /// use seahorse::{Context, Flag, FlagType};
+    /// use seahorse::Context;
     ///
-    /// let args: Vec<String> = env::args().collect();
-    /// let flag = Flag::new("bool", "cli cmd [arg] --bool", FlagType::Bool);
-    /// let context = Context::new(args, Some(vec![flag]));
-    ///
-    /// if context.bool_flag("bool") {
-    ///     println!("true");
+    /// fn action(c: &Context) {
+    ///     if c.bool_flag("bool") {
+    ///         println!("True!");
+    ///     } else {
+    ///         println!("False!");
+    ///     }
     /// }
     /// ```
     pub fn bool_flag(&self, name: &str) -> bool {
@@ -98,12 +88,7 @@ impl Context {
     /// Example
     ///
     /// ```
-    /// use std::env;
-    /// use seahorse::{Context, Flag, FlagType};
-    ///
-    /// let args: Vec<String> = env::args().collect();
-    /// let flag = Flag::new("string", "cli cmd [arg] --string [string]", FlagType::String);
-    /// let context = Context::new(args, Some(vec![flag]));
+    /// use seahorse::Context;
     ///
     /// match context.string_flag("string") {
     ///     Some(r) => match r {
@@ -129,12 +114,7 @@ impl Context {
     /// Example
     ///
     /// ```
-    /// use std::env;
-    /// use seahorse::{Context, Flag, FlagType};
-    ///
-    /// let args: Vec<String> = env::args().collect();
-    /// let flag = Flag::new("int", "cli cmd [arg] --int [int]", FlagType::Int);
-    /// let context = Context::new(args, Some(vec![flag]));
+    /// use seahorse::Context;
     ///
     /// match context.int_flag("int") {
     ///     Some(r) => match r {
@@ -160,12 +140,7 @@ impl Context {
     /// Example
     ///
     /// ```
-    /// use std::env;
-    /// use seahorse::{Context, Flag, FlagType};
-    ///
-    /// let args: Vec<String> = env::args().collect();
-    /// let flag = Flag::new("float", "cli cmd [arg] --float [float]", FlagType::Float);
-    /// let context = Context::new(args, Some(vec![flag]));
+    /// use seahorse::Context;
     ///
     /// match context.float_flag("float") {
     ///     Some(r) => match r {
@@ -184,6 +159,21 @@ impl Context {
             },
             None => None,
         }
+    }
+
+    /// Display help
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::Context;
+    ///
+    /// fn action(c: &Context) {
+    ///     c.help();
+    /// }
+    /// ```
+    pub fn help(&self) {
+        println!("{}", self.help_text);
     }
 }
 #[cfg(test)]
@@ -205,12 +195,12 @@ mod tests {
             "1.23".to_string(),
         ];
         let flags = vec![
-            Flag::new("bool", "", FlagType::Bool),
-            Flag::new("string", "", FlagType::String),
-            Flag::new("int", "", FlagType::Int),
-            Flag::new("float", "", FlagType::Float),
+            Flag::new("bool", FlagType::Bool),
+            Flag::new("string", FlagType::String),
+            Flag::new("int", FlagType::Int),
+            Flag::new("float", FlagType::Float),
         ];
-        let context = Context::new(args, Some(flags));
+        let context = Context::new(args, Some(flags), "".to_string());
 
         assert_eq!(true, context.bool_flag("bool"));
 

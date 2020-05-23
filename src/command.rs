@@ -1,26 +1,16 @@
 use crate::{Action, Context, Flag};
 
 /// Application command type
+#[derive(Default)]
 pub struct Command {
     /// Command name
     pub name: String,
     /// Command usage
-    pub usage: String,
+    pub usage: Option<String>,
     /// Command action
-    pub action: Action,
+    pub action: Option<Action>,
     /// Action flags
     pub flags: Option<Vec<Flag>>,
-}
-
-impl Default for Command {
-    fn default() -> Self {
-        Self {
-            name: "".to_string(),
-            usage: "".to_string(),
-            action: |c: &Context| println!("{:?}", c.args),
-            flags: None,
-        }
-    }
 }
 
 impl Command {
@@ -31,25 +21,13 @@ impl Command {
     /// ```
     /// use seahorse::Command;
     ///
-    /// let command = Command::new();
+    /// let command = Command::new("cmd");
     /// ```
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Set name of the command
-    ///
-    /// Example
-    ///
-    /// ```
-    /// use seahorse::Command;
-    ///
-    /// let command = Command::new()
-    ///     .name("cmd");
-    /// ```
-    pub fn name<T: Into<String>>(mut self, name: T) -> Self {
-        self.name = name.into();
-        self
+    pub fn new<T: Into<String>>(name: T) -> Self {
+        Self {
+            name: name.into(),
+            ..Self::default()
+        }
     }
 
     /// Set usage of the command
@@ -59,11 +37,11 @@ impl Command {
     /// ```
     /// use seahorse::Command;
     ///
-    /// let command = Command::new()
+    /// let command = Command::new("cmd")
     ///     .usage("cli cmd [arg]");
     /// ```
     pub fn usage<T: Into<String>>(mut self, usage: T) -> Self {
-        self.usage = usage.into();
+        self.usage = Some(usage.into());
         self
     }
 
@@ -75,11 +53,11 @@ impl Command {
     /// use seahorse::{Command, Context, Action};
     ///
     /// let action: Action = |c: &Context| println!("{:?}", c.args);
-    /// let command = Command::new()
+    /// let command = Command::new("cmd")
     ///     .action(action);
     /// ```
     pub fn action(mut self, action: Action) -> Self {
-        self.action = action;
+        self.action = Some(action);
         self
     }
 
@@ -90,9 +68,9 @@ impl Command {
     /// ```
     /// use seahorse::{Command, Flag, FlagType};
     ///
-    /// let command = Command::new()
-    ///     .flag(Flag::new("bool", "cli [arg] --bool", FlagType::Bool))
-    ///     .flag(Flag::new("int", "cli [arg] --int [int]", FlagType::Int));
+    /// let command = Command::new("cmd")
+    ///     .flag(Flag::new("bool", FlagType::Bool))
+    ///     .flag(Flag::new("int", FlagType::Int));
     /// ```
     pub fn flag(mut self, flag: Flag) -> Self {
         if let Some(ref mut flags) = self.flags {
@@ -105,8 +83,11 @@ impl Command {
 
     /// Run command
     /// Call this function only from `App`
-    pub fn run(&self, v: Vec<String>) {
-        (self.action)(&Context::new(v, self.flags.clone()))
+    pub fn run(&self, v: Vec<String>, help_text: String) {
+        match self.action {
+            Some(action) => action(&Context::new(v, self.flags.clone(), help_text)),
+            None => println!("{}", help_text),
+        }
     }
 }
 
@@ -117,13 +98,12 @@ mod tests {
     #[test]
     fn command_test() {
         let a: Action = |c: &Context| println!("Hello, {:?}", c.args);
-        let c = Command::new()
-            .name("hello")
+        let c = Command::new("hello")
             .usage("test hello user")
             .action(a)
-            .flag(Flag::new("t", "t", FlagType::Bool));
+            .flag(Flag::new("t", FlagType::Bool));
 
         assert_eq!(c.name, "hello".to_string());
-        assert_eq!(c.usage, "test hello user".to_string());
+        assert_eq!(c.usage, Some("test hello user".to_string()));
     }
 }
