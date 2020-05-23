@@ -1,7 +1,7 @@
 /// `Flag` type.
 ///
 /// Option flag struct
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Flag {
     /// Flag name
     pub name: String,
@@ -14,7 +14,7 @@ pub struct Flag {
 }
 
 /// `FlagType` enum
-#[derive(PartialOrd, PartialEq, Clone)]
+#[derive(PartialOrd, PartialEq, Clone, Debug)]
 pub enum FlagType {
     Bool,
     String,
@@ -23,6 +23,7 @@ pub enum FlagType {
 }
 
 /// `FlagValue` enum
+#[derive(PartialOrd, PartialEq, Clone, Debug)]
 pub enum FlagValue {
     Bool(bool),
     String(String),
@@ -104,37 +105,41 @@ impl Flag {
     }
 
     /// Get flag value
-    pub fn value(&self, v: &[String]) -> Option<FlagValue> {
+    pub fn value(&self, v: Option<String>) -> Result<FlagValue, String> {
         match self.flag_type {
-            FlagType::Bool => match &self.alias {
-                Some(alias) => Some(FlagValue::Bool(
-                    v.contains(&format!("--{}", self.name))
-                        || alias.iter().any(|a| v.contains(&format!("-{}", a))),
+            FlagType::Bool => Ok(FlagValue::Bool(true)),
+            FlagType::String => match v {
+                Some(s) => Ok(FlagValue::String(s)),
+                None => Err(format!(
+                    "Arguments are required for the `--{}` flag.",
+                    self.name
                 )),
-                None => Some(FlagValue::Bool(v.contains(&format!("--{}", self.name)))),
             },
-            FlagType::String => match self.option_index(&v) {
-                Some(index) => Some(FlagValue::String(v[index + 1].to_owned())),
-                None => None,
-            },
-            FlagType::Int => match self.option_index(&v) {
-                Some(index) => Some(FlagValue::Int(
-                    v[index + 1].parse::<isize>().unwrap_or_else(|_| {
-                        panic!(format!("The value of `{}` flag should be int.", self.name))
-                    }),
+            FlagType::Int => match v {
+                Some(i) => match i.parse::<isize>() {
+                    Ok(i) => Ok(FlagValue::Int(i)),
+                    Err(_) => Err(format!(
+                        "The value of `--{}` flag should be int.",
+                        self.name
+                    )),
+                },
+                None => Err(format!(
+                    "Arguments are required for the `--{}` flag.",
+                    self.name
                 )),
-                None => None,
             },
-            FlagType::Float => match self.option_index(&v) {
-                Some(index) => Some(FlagValue::Float(
-                    v[index + 1].parse::<f64>().unwrap_or_else(|_| {
-                        panic!(format!(
-                            "The value of `{}` flag should be float.",
-                            self.name
-                        ))
-                    }),
+            FlagType::Float => match v {
+                Some(f) => match f.parse::<f64>() {
+                    Ok(f) => Ok(FlagValue::Float(f)),
+                    Err(_) => Err(format!(
+                        "The value of `--{}` flag should be float.",
+                        self.name
+                    )),
+                },
+                None => Err(format!(
+                    "Arguments are required for the `--{}` flag.",
+                    self.name
                 )),
-                None => None,
             },
         }
     }
@@ -195,8 +200,8 @@ mod tests {
             "--bool".to_string(),
         ];
 
-        match bool_flag.value(&v) {
-            Some(FlagValue::Bool(val)) => assert!(val),
+        match bool_flag.value(Some(v[3].to_owned())) {
+            Ok(FlagValue::Bool(val)) => assert!(val),
             _ => assert!(false),
         }
     }
@@ -212,8 +217,8 @@ mod tests {
             "test".to_string(),
         ];
 
-        match string_flag.value(&v) {
-            Some(FlagValue::String(val)) => assert_eq!("test".to_string(), val),
+        match string_flag.value(Some(v[4].to_owned())) {
+            Ok(FlagValue::String(val)) => assert_eq!("test".to_string(), val),
             _ => assert!(false),
         }
     }
@@ -229,8 +234,8 @@ mod tests {
             "100".to_string(),
         ];
 
-        match int_flag.value(&v) {
-            Some(FlagValue::Int(val)) => assert_eq!(100, val),
+        match int_flag.value(Some(v[4].to_owned())) {
+            Ok(FlagValue::Int(val)) => assert_eq!(100, val),
             _ => assert!(false),
         }
     }
@@ -246,8 +251,8 @@ mod tests {
             "1.23".to_string(),
         ];
 
-        match float_flag.value(&v) {
-            Some(FlagValue::Float(val)) => assert_eq!(1.23, val),
+        match float_flag.value(Some(v[4].to_owned())) {
+            Ok(FlagValue::Float(val)) => assert_eq!(1.23, val),
             _ => assert!(false),
         }
     }

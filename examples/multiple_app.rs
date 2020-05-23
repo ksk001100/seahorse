@@ -25,8 +25,8 @@ fn hello_action(c: &Context) {
     }
 
     match c.int_flag("age") {
-        Some(age) => println!("{:?} is {} years old", c.args, age),
-        None => println!("I don't know {:?}'s age", c.args),
+        Ok(age) => println!("{:?} is {} years old", c.args, age),
+        Err(e) => println!("{}", e),
     }
 }
 
