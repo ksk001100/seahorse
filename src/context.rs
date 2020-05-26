@@ -1,3 +1,4 @@
+use crate::error::FlagError;
 use crate::{Flag, FlagType, FlagValue};
 
 /// `Context` type
@@ -7,7 +8,7 @@ pub struct Context {
     /// `Vec<String>` with flags and flag values ​​removed from command line arguments
     pub args: Vec<String>,
     /// `Vec` that stores flag name and flag value as tuple
-    flags: Option<Vec<(String, Result<FlagValue, String>)>>,
+    flags: Option<Vec<(String, Result<FlagValue, FlagError>)>>,
     help_text: String,
 }
 
@@ -16,7 +17,7 @@ impl Context {
     /// Parse processing using `Vec<String>` command line argument and `Vec<Flag>` as arguments
     pub fn new(args: Vec<String>, flags: Option<Vec<Flag>>, help_text: String) -> Self {
         let mut v = Vec::new();
-        let mut parsed_args = args.clone();
+        let mut parsed_args = args;
         let flags_val = match flags {
             Some(flags) => {
                 for flag in flags {
@@ -24,7 +25,7 @@ impl Context {
                         parsed_args.remove(index);
 
                         let val = if flag.flag_type != FlagType::Bool {
-                            if parsed_args.is_empty() {
+                            if parsed_args.len() <= index {
                                 None
                             } else {
                                 Some(parsed_args.remove(index))
@@ -48,15 +49,18 @@ impl Context {
     }
 
     /// Get flag value
-    fn result_flag_value<'a>(&self, name: &str) -> Option<Result<FlagValue, String>> {
+    fn result_flag_value(&self, name: &str) -> Result<FlagValue, FlagError> {
         let flag = self
             .flags
             .as_ref()
             .and_then(|flags| flags.iter().find(|flag| flag.0 == name));
 
         match flag {
-            Some(f) => Some(f.1.to_owned()),
-            None => None,
+            Some(f) => match &f.1 {
+                Ok(val) => Ok(val.to_owned()),
+                Err(e) => Err(e.to_owned()),
+            },
+            None => Err(FlagError::NotFound),
         }
     }
 
@@ -78,7 +82,7 @@ impl Context {
     pub fn bool_flag(&self, name: &str) -> bool {
         let r = self.result_flag_value(name);
         match r {
-            Some(Ok(FlagValue::Bool(val))) => val,
+            Ok(FlagValue::Bool(val)) => val,
             _ => false,
         }
     }
@@ -98,15 +102,20 @@ impl Context {
     ///     None => println!("Not found string...")
     /// }
     /// ```
-    pub fn string_flag(&self, name: &str) -> Option<Result<String, String>> {
+    pub fn string_flag(&self, name: &str) -> Result<String, FlagError> {
         match self.result_flag_value(name) {
-            Some(r) => match r {
-                Ok(FlagValue::String(val)) => Some(Ok(val)),
-                Err(e) => Some(Err(e)),
-                _ => Some(Err("".to_string())),
-            },
-            None => None,
+            Ok(FlagValue::String(val)) => Ok(val),
+            Err(e) => Err(e),
+            _ => Err(FlagError::ArgumentError),
         }
+        // match self.result_flag_value(name) {
+        //     Some(r) => match r {
+        //         Ok(FlagValue::String(val)) => Some(Ok(val)),
+        //         Err(e) => Some(Err(e)),
+        //         _ => Some(Err("".to_string())),
+        //     },
+        //     None => None,
+        // }
     }
 
     /// Get int flag
@@ -124,15 +133,20 @@ impl Context {
     ///     None => println!("Not found int number...")
     /// }
     /// ```
-    pub fn int_flag(&self, name: &str) -> Option<Result<isize, String>> {
+    pub fn int_flag(&self, name: &str) -> Result<isize, FlagError> {
         match self.result_flag_value(name) {
-            Some(r) => match r {
-                Ok(FlagValue::Int(val)) => Some(Ok(val)),
-                Err(e) => Some(Err(e.to_owned())),
-                _ => Some(Err("".to_string())),
-            },
-            None => None,
+            Ok(FlagValue::Int(val)) => Ok(val),
+            Err(e) => Err(e),
+            _ => Err(FlagError::ArgumentError),
         }
+        // match self.result_flag_value(name) {
+        //     Some(r) => match r {
+        //         Ok(FlagValue::Int(val)) => Some(Ok(val)),
+        //         Err(e) => Some(Err(e.to_owned())),
+        //         _ => Some(Err("".to_string())),
+        //     },
+        //     None => None,
+        // }
     }
 
     /// Get float flag
@@ -150,15 +164,20 @@ impl Context {
     ///     None => println!("Not found float number...")
     /// }
     /// ```
-    pub fn float_flag(&self, name: &str) -> Option<Result<f64, String>> {
+    pub fn float_flag(&self, name: &str) -> Result<f64, FlagError> {
         match self.result_flag_value(name) {
-            Some(r) => match r {
-                Ok(FlagValue::Float(val)) => Some(Ok(val)),
-                Err(e) => Some(Err(e.to_owned())),
-                _ => Some(Err("".to_string())),
-            },
-            None => None,
+            Ok(FlagValue::Float(val)) => Ok(val),
+            Err(e) => Err(e),
+            _ => Err(FlagError::ArgumentError),
         }
+        // match self.result_flag_value(name) {
+        //     Some(r) => match r {
+        //         Ok(FlagValue::Float(val)) => Some(Ok(val)),
+        //         Err(e) => Some(Err(e.to_owned())),
+        //         _ => Some(Err("".to_string())),
+        //     },
+        //     None => None,
+        // }
     }
 
     /// Display help

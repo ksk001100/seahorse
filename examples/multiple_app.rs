@@ -1,4 +1,4 @@
-use seahorse::{color, App, Command, Context, Flag, FlagType};
+use seahorse::{color, error::FlagError, App, Command, Context, Flag, FlagType};
 use std::env;
 
 fn main() {
@@ -29,7 +29,12 @@ fn hello_action(c: &Context) {
 
     match c.int_flag("age") {
         Ok(age) => println!("{:?} is {} years old", c.args, age),
-        Err(e) => println!("{}", e),
+        Err(e) => match e {
+            FlagError::TypeError => println!("age type error"),
+            FlagError::Undefined => println!("undefined"),
+            FlagError::ArgumentError => println!("age argument error"),
+            FlagError::NotFound => println!("hogehoge"),
+        },
     }
 }
 

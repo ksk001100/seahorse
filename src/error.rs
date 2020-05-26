@@ -1,24 +1,32 @@
 use std::error;
 use std::fmt;
 
-struct ArgumentError {
-    name: String,
+#[derive(PartialOrd, PartialEq, Clone, Debug)]
+pub enum FlagError {
+    NotFound,
+    Undefined,
+    TypeError,
+    ArgumentError,
 }
 
-impl fmt::Display for ArgumentError {
+impl fmt::Display for FlagError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Argument error: {}", self.name)
+        match *self {
+            FlagError::NotFound => f.write_str("NotFound"),
+            FlagError::Undefined => f.write_str("Undefined"),
+            FlagError::TypeError => f.write_str("TypeError"),
+            FlagError::ArgumentError => f.write_str("ArgumentError"),
+        }
     }
 }
 
-impl error::Error for ArgumentError {
-    fn description(&self) -> &str {}
-
-    fn cause(&self) -> Option<&error::Error> {}
-}
-
-impl ArgumentError {
-    pub fn new<T: Into<String>>(name: T) -> Self {
-        Self { name: name.into() }
+impl error::Error for FlagError {
+    fn description(&self) -> &str {
+        match *self {
+            FlagError::NotFound => "Flag not found",
+            FlagError::Undefined => "Flag undefined",
+            FlagError::TypeError => "Value type mismatch",
+            FlagError::ArgumentError => "Illegal argument",
+        }
     }
 }

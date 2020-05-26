@@ -1,3 +1,5 @@
+use crate::error::FlagError;
+
 /// `Flag` type.
 ///
 /// Option flag struct
@@ -120,41 +122,26 @@ impl Flag {
     }
 
     /// Get flag value
-    pub fn value(&self, v: Option<String>) -> Result<FlagValue, String> {
+    pub fn value(&self, v: Option<String>) -> Result<FlagValue, FlagError> {
         match self.flag_type {
             FlagType::Bool => Ok(FlagValue::Bool(true)),
             FlagType::String => match v {
                 Some(s) => Ok(FlagValue::String(s)),
-                None => Err(format!(
-                    "Arguments are required for the `--{}` flag.",
-                    self.name
-                )),
+                None => Err(FlagError::ArgumentError),
             },
             FlagType::Int => match v {
                 Some(i) => match i.parse::<isize>() {
                     Ok(i) => Ok(FlagValue::Int(i)),
-                    Err(_) => Err(format!(
-                        "The value of `--{}` flag should be int.",
-                        self.name
-                    )),
+                    Err(_) => Err(FlagError::TypeError),
                 },
-                None => Err(format!(
-                    "Arguments are required for the `--{}` flag.",
-                    self.name
-                )),
+                None => Err(FlagError::ArgumentError),
             },
             FlagType::Float => match v {
                 Some(f) => match f.parse::<f64>() {
                     Ok(f) => Ok(FlagValue::Float(f)),
-                    Err(_) => Err(format!(
-                        "The value of `--{}` flag should be float.",
-                        self.name
-                    )),
+                    Err(_) => Err(FlagError::TypeError),
                 },
-                None => Err(format!(
-                    "Arguments are required for the `--{}` flag.",
-                    self.name
-                )),
+                None => Err(FlagError::ArgumentError),
             },
         }
     }
