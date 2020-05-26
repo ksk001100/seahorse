@@ -94,12 +94,11 @@ impl Context {
     /// ```
     /// use seahorse::Context;
     ///
-    /// match context.string_flag("string") {
-    ///     Some(r) => match r {
+    /// fn action(c: &Context) {
+    ///     match c.string_flag("string") {
     ///         Ok(s) => println!("{}", s),
     ///         Err(e) => println!("{}", e)
-    ///     },
-    ///     None => println!("Not found string...")
+    ///     }
     /// }
     /// ```
     pub fn string_flag(&self, name: &str) -> Result<String, FlagError> {
@@ -108,14 +107,6 @@ impl Context {
             Err(e) => Err(e),
             _ => Err(FlagError::ArgumentError),
         }
-        // match self.result_flag_value(name) {
-        //     Some(r) => match r {
-        //         Ok(FlagValue::String(val)) => Some(Ok(val)),
-        //         Err(e) => Some(Err(e)),
-        //         _ => Some(Err("".to_string())),
-        //     },
-        //     None => None,
-        // }
     }
 
     /// Get int flag
@@ -125,12 +116,11 @@ impl Context {
     /// ```
     /// use seahorse::Context;
     ///
-    /// match context.int_flag("int") {
-    ///     Some(r) => match r {
+    /// fn action(c: &Context) {
+    ///     match c.int_flag("int") {
     ///         Ok(i) => println!("{}", i),
     ///         Err(e) => println!("{}", e)
     ///     }
-    ///     None => println!("Not found int number...")
     /// }
     /// ```
     pub fn int_flag(&self, name: &str) -> Result<isize, FlagError> {
@@ -139,14 +129,6 @@ impl Context {
             Err(e) => Err(e),
             _ => Err(FlagError::ArgumentError),
         }
-        // match self.result_flag_value(name) {
-        //     Some(r) => match r {
-        //         Ok(FlagValue::Int(val)) => Some(Ok(val)),
-        //         Err(e) => Some(Err(e.to_owned())),
-        //         _ => Some(Err("".to_string())),
-        //     },
-        //     None => None,
-        // }
     }
 
     /// Get float flag
@@ -156,12 +138,11 @@ impl Context {
     /// ```
     /// use seahorse::Context;
     ///
-    /// match context.float_flag("float") {
-    ///     Some(r) => match r {
+    /// fn action(c: &Context) {
+    ///     match c.float_flag("float") {
     ///         Ok(f) => println!("{}", f),
     ///         Err(e) => println!("{}", e)
     ///     }
-    ///     None => println!("Not found float number...")
     /// }
     /// ```
     pub fn float_flag(&self, name: &str) -> Result<f64, FlagError> {
@@ -170,14 +151,6 @@ impl Context {
             Err(e) => Err(e),
             _ => Err(FlagError::ArgumentError),
         }
-        // match self.result_flag_value(name) {
-        //     Some(r) => match r {
-        //         Ok(FlagValue::Float(val)) => Some(Ok(val)),
-        //         Err(e) => Some(Err(e.to_owned())),
-        //         _ => Some(Err("".to_string())),
-        //     },
-        //     None => None,
-        // }
     }
 
     /// Display help
@@ -237,23 +210,5 @@ mod tests {
             Ok(val) => assert_eq!(1.23, val),
             _ => assert!(false),
         }
-    }
-
-    #[test]
-    #[should_panic]
-    fn argument_fail() {
-        let args = vec![
-            "cli".to_string(),
-            "command".to_string(),
-            "args".to_string(),
-            "--bool".to_string(),
-            "--string".to_string(),
-        ];
-        let flags = vec![
-            Flag::new("bool", "", FlagType::Bool),
-            Flag::new("string", "", FlagType::String),
-        ];
-
-        Context::new(args, Some(flags));
     }
 }
