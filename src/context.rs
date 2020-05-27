@@ -60,7 +60,7 @@ impl Context {
                 Ok(val) => Ok(val.to_owned()),
                 Err(e) => Err(e.to_owned()),
             },
-            None => Err(FlagError::NotFound),
+            None => Err(FlagError::Undefined),
         }
     }
 
