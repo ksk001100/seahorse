@@ -38,14 +38,14 @@ fn hello_action(c: &Context) {
         },
     }
 
-    match c.float_flag("age") {
-        Ok(age) => println!("{:?} is {} years old", c.args, age),
+    match c.string_flag("neko") {
+        Ok(neko) => println!("neko say {}", neko),
         Err(e) => match e {
-            FlagError::TypeError => println!("age flag type error"),
+            FlagError::TypeError => println!("neko flag type error"),
             FlagError::ValueTypeError => println!("value type error"),
-            FlagError::Undefined => println!("undefined age flag"),
-            FlagError::ArgumentError => println!("age flag argument error"),
-            FlagError::NotFound => println!("not found age flag"),
+            FlagError::Undefined => println!("undefined neko flag"),
+            FlagError::ArgumentError => println!("neko flag argument error"),
+            FlagError::NotFound => println!("not found neko flag"),
         },
     }
 }
