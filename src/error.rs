@@ -6,6 +6,7 @@ pub enum FlagError {
     NotFound,
     Undefined,
     TypeError,
+    ValueTypeError,
     ArgumentError,
 }
 
@@ -15,6 +16,7 @@ impl fmt::Display for FlagError {
             FlagError::NotFound => f.write_str("NotFound"),
             FlagError::Undefined => f.write_str("Undefined"),
             FlagError::TypeError => f.write_str("TypeError"),
+            FlagError::ValueTypeError => f.write_str("ValueTypeError"),
             FlagError::ArgumentError => f.write_str("ArgumentError"),
         }
     }
@@ -25,7 +27,8 @@ impl error::Error for FlagError {
         match *self {
             FlagError::NotFound => "Flag not found",
             FlagError::Undefined => "Flag undefined",
-            FlagError::TypeError => "Value type mismatch",
+            FlagError::TypeError => "Flag type mismatch",
+            FlagError::ValueTypeError => "Value type mismatch",
             FlagError::ArgumentError => "Illegal argument",
         }
     }

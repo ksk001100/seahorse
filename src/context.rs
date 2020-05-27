@@ -34,6 +34,8 @@ impl Context {
                             None
                         };
                         v.push((flag.name.to_string(), flag.value(val)))
+                    } else {
+                        v.push((flag.name.to_string(), Err(FlagError::NotFound)))
                     }
                 }
                 Some(v)
@@ -105,7 +107,7 @@ impl Context {
         match self.result_flag_value(name) {
             Ok(FlagValue::String(val)) => Ok(val),
             Err(e) => Err(e),
-            _ => Err(FlagError::ArgumentError),
+            _ => Err(FlagError::TypeError),
         }
     }
 
@@ -127,7 +129,7 @@ impl Context {
         match self.result_flag_value(name) {
             Ok(FlagValue::Int(val)) => Ok(val),
             Err(e) => Err(e),
-            _ => Err(FlagError::ArgumentError),
+            _ => Err(FlagError::TypeError),
         }
     }
 
@@ -149,7 +151,7 @@ impl Context {
         match self.result_flag_value(name) {
             Ok(FlagValue::Float(val)) => Ok(val),
             Err(e) => Err(e),
-            _ => Err(FlagError::ArgumentError),
+            _ => Err(FlagError::TypeError),
         }
     }
 

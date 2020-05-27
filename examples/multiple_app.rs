@@ -31,16 +31,18 @@ fn hello_action(c: &Context) {
         Ok(age) => println!("{:?} is {} years old", c.args, age),
         Err(e) => match e {
             FlagError::TypeError => println!("age flag type error"),
+            FlagError::ValueTypeError => println!("value type error"),
             FlagError::Undefined => println!("undefined age flag"),
             FlagError::ArgumentError => println!("age flag argument error"),
             FlagError::NotFound => println!("not found age flag"),
         },
     }
 
-    match c.int_flag("neko") {
+    match c.float_flag("age") {
         Ok(age) => println!("{:?} is {} years old", c.args, age),
         Err(e) => match e {
             FlagError::TypeError => println!("age flag type error"),
+            FlagError::ValueTypeError => println!("value type error"),
             FlagError::Undefined => println!("undefined age flag"),
             FlagError::ArgumentError => println!("age flag argument error"),
             FlagError::NotFound => println!("not found age flag"),

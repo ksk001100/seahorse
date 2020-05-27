@@ -132,14 +132,14 @@ impl Flag {
             FlagType::Int => match v {
                 Some(i) => match i.parse::<isize>() {
                     Ok(i) => Ok(FlagValue::Int(i)),
-                    Err(_) => Err(FlagError::TypeError),
+                    Err(_) => Err(FlagError::ValueTypeError),
                 },
                 None => Err(FlagError::ArgumentError),
             },
             FlagType::Float => match v {
                 Some(f) => match f.parse::<f64>() {
                     Ok(f) => Ok(FlagValue::Float(f)),
-                    Err(_) => Err(FlagError::TypeError),
+                    Err(_) => Err(FlagError::ValueTypeError),
                 },
                 None => Err(FlagError::ArgumentError),
             },
