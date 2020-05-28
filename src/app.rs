@@ -353,16 +353,16 @@ mod tests {
         let a: Action = |c: &Context| {
             assert_eq!(true, c.bool_flag("bool"));
             match c.string_flag("string") {
-                Some(flag) => assert_eq!("string".to_string(), flag),
-                None => assert!(false, "string test false..."),
+                Ok(flag) => assert_eq!("string".to_string(), flag),
+                _ => assert!(false, "string test false..."),
             }
             match c.int_flag("int") {
-                Some(flag) => assert_eq!(100, flag),
-                None => assert!(false, "int test false..."),
+                Ok(flag) => assert_eq!(100, flag),
+                _ => assert!(false, "int test false..."),
             }
             match c.float_flag("float") {
-                Some(flag) => assert_eq!(1.23, flag),
-                None => assert!(false, "float test false..."),
+                Ok(flag) => assert_eq!(1.23, flag),
+                _ => assert!(false, "float test false..."),
             }
         };
         let c = Command::new("hello")
@@ -405,16 +405,16 @@ mod tests {
         let action: Action = |c: &Context| {
             assert_eq!(true, c.bool_flag("bool"));
             match c.string_flag("string") {
-                Some(flag) => assert_eq!("string".to_string(), flag),
-                None => assert!(false, "string test false..."),
+                Ok(flag) => assert_eq!("string".to_string(), flag),
+                _ => assert!(false, "string test false..."),
             }
             match c.int_flag("int") {
-                Some(flag) => assert_eq!(100, flag),
-                None => assert!(false, "int test false..."),
+                Ok(flag) => assert_eq!(100, flag),
+                _ => assert!(false, "int test false..."),
             }
             match c.float_flag("float") {
-                Some(flag) => assert_eq!(1.23, flag),
-                None => assert!(false, "float test false..."),
+                Ok(flag) => assert_eq!(1.23, flag),
+                _ => assert!(false, "float test false..."),
             }
         };
 
@@ -453,16 +453,16 @@ mod tests {
         let action: Action = |c: &Context| {
             assert_eq!(true, c.bool_flag("bool"));
             match c.string_flag("string") {
-                Some(flag) => assert_eq!("string".to_string(), flag),
-                None => assert!(false, "string test false..."),
+                Ok(flag) => assert_eq!("string".to_string(), flag),
+                _ => assert!(false, "string test false..."),
             }
             match c.int_flag("int") {
-                Some(flag) => assert_eq!(100, flag),
-                None => assert!(false, "int test false..."),
+                Ok(flag) => assert_eq!(100, flag),
+                _ => assert!(false, "int test false..."),
             }
             match c.float_flag("float") {
-                Some(flag) => assert_eq!(1.23, flag),
-                None => assert!(false, "float test false..."),
+                Ok(flag) => assert_eq!(1.23, flag),
+                _ => assert!(false, "float test false..."),
             }
         };
 
@@ -500,16 +500,16 @@ mod tests {
         let action: Action = |c: &Context| {
             assert_eq!(true, c.bool_flag("bool"));
             match c.string_flag("string") {
-                Some(flag) => assert_eq!("str=ing".to_string(), flag),
-                None => assert!(false, "string test false..."),
+                Ok(flag) => assert_eq!("str=ing".to_string(), flag),
+                _ => assert!(false, "string test false..."),
             }
             match c.int_flag("int") {
-                Some(flag) => assert_eq!(100, flag),
-                None => assert!(false, "int test false..."),
+                Ok(flag) => assert_eq!(100, flag),
+                _ => assert!(false, "int test false..."),
             }
             match c.float_flag("float") {
-                Some(flag) => assert_eq!(1.23, flag),
-                None => assert!(false, "float test false..."),
+                Ok(flag) => assert_eq!(1.23, flag),
+                _ => assert!(false, "float test false..."),
             }
         };
 

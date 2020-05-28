@@ -103,8 +103,6 @@ mod tests {
             .action(a)
             .flag(Flag::new("t", FlagType::Bool));
 
-        &c.flags.unwrap()[0].value(&vec!["--hoge".to_string()]);
-
         assert_eq!(c.name, "hello".to_string());
         assert_eq!(c.usage, Some("test hello user".to_string()));
     }

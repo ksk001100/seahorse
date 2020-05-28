@@ -3,15 +3,7 @@ use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let name = color::magenta(
-        "
-     ██████╗██╗     ██╗
-    ██╔════╝██║     ██║
-    ██║     ██║     ██║
-    ██║     ██║     ██║
-    ╚██████╗███████╗██║
-     ╚═════╝╚══════╝╚═╝",
-    );
+    let name = color::magenta("single_app");
 
     let app = App::new(name)
         .author(env!("CARGO_PKG_AUTHORS"))

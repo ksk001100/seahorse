@@ -127,7 +127,7 @@ $ cli sub 12 23 89
 ### Branch processing by flag
 
 ```rust
-use seahorse::{App, Command, Context, Flag, FlagType};
+use seahorse::{App, Command, Context, Flag, FlagType, error::FlagError};
 use std::env;
 
 fn main() {
@@ -159,14 +159,14 @@ fn default_action(c: &Context) {
         println!("Hello, {:?}", c.args);
     }
 
-    if let Some(age) = c.int_flag("age") {
+    if let Ok(age) = c.int_flag("age") {
         println!("{:?} is {} years old", c.args, age);
     }
 }
 
 fn calc_action(c: &Context) {
     match c.string_flag("operator") {
-        Some(op) => {
+        Ok(op) => {
             let sum: i32 = match &*op {
                 "add" => c.args.iter().map(|n| n.parse::<i32>().unwrap()).sum(),
                 "sub" => c.args.iter().map(|n| n.parse::<i32>().unwrap() * -1).sum(),
@@ -175,7 +175,13 @@ fn calc_action(c: &Context) {
 
             println!("{}", sum);
         }
-        None => panic!("undefined operator..."),
+        Err(e) => match e {
+            FlagError::Undefiled => panic!("undefined operator..."), 
+            FlagError::ArgumentError => panic!("argument error..."), 
+            FlagError::NotFound => panic!("not found flag..."), 
+            FlagError::ValueTypeError => panic!("value type mismatch..."), 
+            FlagError::TypeError => panic!("flag type mismatch..."), 
+        },
     }
 }
 
