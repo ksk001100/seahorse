@@ -104,9 +104,9 @@ impl Context {
     /// }
     /// ```
     pub fn string_flag(&self, name: &str) -> Result<String, FlagError> {
-        match self.result_flag_value(name) {
-            Ok(FlagValue::String(val)) => Ok(val),
-            Err(e) => Err(e),
+        let r = self.result_flag_value(name)?;
+        match r {
+            FlagValue::String(val) => Ok(val),
             _ => Err(FlagError::TypeError),
         }
     }
@@ -126,9 +126,9 @@ impl Context {
     /// }
     /// ```
     pub fn int_flag(&self, name: &str) -> Result<isize, FlagError> {
-        match self.result_flag_value(name) {
-            Ok(FlagValue::Int(val)) => Ok(val),
-            Err(e) => Err(e),
+        let r = self.result_flag_value(name)?;
+        match r {
+            FlagValue::Int(val) => Ok(val),
             _ => Err(FlagError::TypeError),
         }
     }
@@ -148,9 +148,9 @@ impl Context {
     /// }
     /// ```
     pub fn float_flag(&self, name: &str) -> Result<f64, FlagError> {
-        match self.result_flag_value(name) {
-            Ok(FlagValue::Float(val)) => Ok(val),
-            Err(e) => Err(e),
+        let r = self.result_flag_value(name)?;
+        match r {
+            FlagValue::Float(val) => Ok(val),
             _ => Err(FlagError::TypeError),
         }
     }
