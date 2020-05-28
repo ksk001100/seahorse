@@ -1,7 +1,7 @@
 use std::error;
 use std::fmt;
 
-#[derive(PartialOrd, PartialEq, Clone, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum FlagError {
     NotFound,
     Undefined,

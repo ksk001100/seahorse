@@ -16,7 +16,7 @@ pub struct Flag {
 }
 
 /// `FlagType` enum
-#[derive(PartialOrd, PartialEq, Clone, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum FlagType {
     Bool,
     String,
@@ -25,7 +25,7 @@ pub enum FlagType {
 }
 
 /// `FlagValue` enum
-#[derive(PartialOrd, PartialEq, Clone, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum FlagValue {
     Bool(bool),
     String(String),
