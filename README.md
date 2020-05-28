@@ -176,11 +176,11 @@ fn calc_action(c: &Context) {
             println!("{}", sum);
         }
         Err(e) => match e {
-            FlagType::Undefiled => panic!("undefined operator..."), 
-            FlagType::ArgumentError => panic!("argument error..."), 
-            FlagType::NotFound => panic!("not found flag..."), 
-            FlagType::ValueTypeError => panic!("value type mismatch..."), 
-            FlagType::TypeError => panic!("flag type mismatch..."), 
+            FlagError::Undefiled => panic!("undefined operator..."), 
+            FlagError::ArgumentError => panic!("argument error..."), 
+            FlagError::NotFound => panic!("not found flag..."), 
+            FlagError::ValueTypeError => panic!("value type mismatch..."), 
+            FlagError::TypeError => panic!("flag type mismatch..."), 
         },
     }
 }
