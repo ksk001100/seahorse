@@ -11,6 +11,8 @@ pub struct Command {
     pub action: Option<Action>,
     /// Action flags
     pub flags: Option<Vec<Flag>>,
+    /// Command alias
+    pub alias: Option<Vec<String>>,
 }
 
 impl Command {
@@ -81,6 +83,25 @@ impl Command {
         self
     }
 
+    /// Set alias of the command
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::Command;
+    ///
+    /// let command = Command::new("cmd")
+    ///     .alias("c");
+    /// ```
+    pub fn alias<T: Into<String>>(mut self, name: T) -> Self {
+        if let Some(ref mut alias) = self.alias {
+            (*alias).push(name.into());
+        } else {
+            self.alias = Some(vec![name.into()]);
+        }
+        self
+    }
+
     /// Run command
     /// Call this function only from `App`
     pub fn run(&self, v: Vec<String>, help_text: String) {
@@ -100,6 +121,7 @@ mod tests {
         let a: Action = |c: &Context| println!("Hello, {:?}", c.args);
         let c = Command::new("hello")
             .usage("test hello user")
+            .alias("c")
             .action(a)
             .flag(Flag::new("t", FlagType::Bool));
 
