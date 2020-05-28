@@ -104,9 +104,9 @@ impl Context {
     /// }
     /// ```
     pub fn string_flag(&self, name: &str) -> Result<String, FlagError> {
-        match self.result_flag_value(name) {
-            Ok(FlagValue::String(val)) => Ok(val),
-            Err(e) => Err(e),
+        let r = self.result_flag_value(name)?;
+        match r {
+            FlagValue::String(val) => Ok(val),
             _ => Err(FlagError::TypeError),
         }
     }
@@ -126,9 +126,9 @@ impl Context {
     /// }
     /// ```
     pub fn int_flag(&self, name: &str) -> Result<isize, FlagError> {
-        match self.result_flag_value(name) {
-            Ok(FlagValue::Int(val)) => Ok(val),
-            Err(e) => Err(e),
+        let r = self.result_flag_value(name)?;
+        match r {
+            FlagValue::Int(val) => Ok(val),
             _ => Err(FlagError::TypeError),
         }
     }
@@ -148,9 +148,9 @@ impl Context {
     /// }
     /// ```
     pub fn float_flag(&self, name: &str) -> Result<f64, FlagError> {
-        match self.result_flag_value(name) {
-            Ok(FlagValue::Float(val)) => Ok(val),
-            Err(e) => Err(e),
+        let r = self.result_flag_value(name)?;
+        match r {
+            FlagValue::Float(val) => Ok(val),
             _ => Err(FlagError::TypeError),
         }
     }
@@ -170,8 +170,10 @@ impl Context {
         println!("{}", self.help_text);
     }
 }
+
 #[cfg(test)]
 mod tests {
+    use crate::error::FlagError;
     use crate::{Context, Flag, FlagType};
 
     #[test]
@@ -187,30 +189,40 @@ mod tests {
             "100".to_string(),
             "--float".to_string(),
             "1.23".to_string(),
+            "--invalid_float".to_string(),
+            "invalid".to_string(),
         ];
         let flags = vec![
             Flag::new("bool", FlagType::Bool),
             Flag::new("string", FlagType::String),
             Flag::new("int", FlagType::Int),
             Flag::new("float", FlagType::Float),
+            Flag::new("invalid_float", FlagType::Float),
+            Flag::new("not_specified", FlagType::String),
         ];
         let context = Context::new(args, Some(flags), "".to_string());
 
-        assert_eq!(true, context.bool_flag("bool"));
+        assert_eq!(context.bool_flag("bool"), true);
+        assert_eq!(context.string_flag("string"), Ok("test".to_string()));
+        assert_eq!(context.int_flag("int"), Ok(100));
+        assert_eq!(context.float_flag("float"), Ok(1.23));
 
-        match context.string_flag("string") {
-            Ok(val) => assert_eq!("test".to_string(), val),
-            _ => assert!(false),
-        }
-
-        match context.int_flag("int") {
-            Ok(val) => assert_eq!(100, val),
-            _ => assert!(false),
-        }
-
-        match context.float_flag("float") {
-            Ok(val) => assert_eq!(1.23, val),
-            _ => assert!(false),
-        }
+        // string value arg, string flag, used as int
+        assert_eq!(context.int_flag("string"), Err(FlagError::TypeError));
+        // string value arg, float flag, used as float
+        assert_eq!(
+            context.float_flag("invalid_float"),
+            Err(FlagError::ValueTypeError)
+        );
+        // use a flag whose name is not defined as flag
+        assert_eq!(
+            context.string_flag("not_registered"),
+            Err(FlagError::Undefined)
+        );
+        // use a flag but it's value not passed
+        assert_eq!(
+            context.string_flag("not_specified"),
+            Err(FlagError::NotFound)
+        );
     }
 }
