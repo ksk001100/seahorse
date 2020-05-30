@@ -98,7 +98,7 @@ fn add_action(c: &Context) {
 fn add_command() -> Command {
     Command::new("add")
         .alias("a")
-        .usage("cli add(a) [nums...]")
+        .usage("cli add(a****) [nums...]")
         .action(add_action)
 }
 

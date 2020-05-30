@@ -369,7 +369,8 @@ mod tests {
             }
         };
         let c = Command::new("hello")
-            .usage("test hello args")
+            .alias("h")
+            .usage("test hello(h) args")
             .action(a)
             .flag(Flag::new("bool", FlagType::Bool))
             .flag(Flag::new("string", FlagType::String))
@@ -386,6 +387,19 @@ mod tests {
         app.run(vec![
             "test".to_string(),
             "hello".to_string(),
+            "args".to_string(),
+            "--bool".to_string(),
+            "--string".to_string(),
+            "string".to_string(),
+            "--int".to_string(),
+            "100".to_string(),
+            "--float".to_string(),
+            "1.23".to_string(),
+        ]);
+
+        app.run(vec![
+            "test".to_string(),
+            "h".to_string(),
             "args".to_string(),
             "--bool".to_string(),
             "--string".to_string(),
