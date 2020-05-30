@@ -1,12 +1,14 @@
+use crate::error::FlagError;
+
 /// `Flag` type.
 ///
 /// Option flag struct
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Flag {
     /// Flag name
     pub name: String,
     /// Flag usage
-    pub usage: String,
+    pub usage: Option<String>,
     /// Flag type
     pub flag_type: FlagType,
     /// Flag alias
@@ -14,7 +16,7 @@ pub struct Flag {
 }
 
 /// `FlagType` enum
-#[derive(PartialOrd, PartialEq, Clone)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum FlagType {
     Bool,
     String,
@@ -23,6 +25,7 @@ pub enum FlagType {
 }
 
 /// `FlagValue` enum
+#[derive(PartialEq, Clone, Debug)]
 pub enum FlagValue {
     Bool(bool),
     String(String),
@@ -38,10 +41,10 @@ impl Flag {
     /// ```
     /// use seahorse::{Flag, FlagType};
     ///
-    /// let bool_flag = Flag::new("bool", "cli cmd [arg] --bool", FlagType::Bool);
-    /// let float_flag = Flag::new("float", "cli cmd [arg] --float [float]", FlagType::Float);
+    /// let bool_flag = Flag::new("bool", FlagType::Bool);
+    /// let float_flag = Flag::new("float", FlagType::Float);
     /// ```
-    pub fn new<T: Into<String>>(name: T, usage: T, flag_type: FlagType) -> Self {
+    pub fn new<T: Into<String>>(name: T, flag_type: FlagType) -> Self {
         let name = name.into();
         if name.starts_with('-') {
             panic!(format!(
@@ -64,10 +67,25 @@ impl Flag {
 
         Self {
             name,
-            usage: usage.into(),
+            usage: None,
             flag_type,
             alias: None,
         }
+    }
+
+    /// Set usage of the flag
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{Flag, FlagType};
+    ///
+    /// let bool_flag = Flag::new("bool", FlagType::Bool)
+    ///     .usage("cli cmd Hello --bool");
+    /// ```
+    pub fn usage<T: Into<String>>(mut self, usage: T) -> Self {
+        self.usage = Some(usage.into());
+        self
     }
 
     /// Set alias of the flag
@@ -77,10 +95,10 @@ impl Flag {
     /// ```
     /// use seahorse::{Flag, FlagType};
     ///
-    /// let bool_flag = Flag::new("bool", "cli cmd [arg] --bool", FlagType::Bool)
+    /// let bool_flag = Flag::new("bool", FlagType::Bool)
     ///     .alias("b");
     ///
-    /// let string_flag = Flag::new("string", "cli cmd [arg] --string [string]", FlagType::String)
+    /// let string_flag = Flag::new("string", FlagType::String)
     ///     .alias("s")
     ///     .alias("str");
     /// ```
@@ -104,37 +122,26 @@ impl Flag {
     }
 
     /// Get flag value
-    pub fn value(&self, v: &[String]) -> Option<FlagValue> {
+    pub fn value(&self, v: Option<String>) -> Result<FlagValue, FlagError> {
         match self.flag_type {
-            FlagType::Bool => match &self.alias {
-                Some(alias) => Some(FlagValue::Bool(
-                    v.contains(&format!("--{}", self.name))
-                        || alias.iter().any(|a| v.contains(&format!("-{}", a))),
-                )),
-                None => Some(FlagValue::Bool(v.contains(&format!("--{}", self.name)))),
+            FlagType::Bool => Ok(FlagValue::Bool(true)),
+            FlagType::String => match v {
+                Some(s) => Ok(FlagValue::String(s)),
+                None => Err(FlagError::ArgumentError),
             },
-            FlagType::String => match self.option_index(&v) {
-                Some(index) => Some(FlagValue::String(v[index + 1].to_owned())),
-                None => None,
+            FlagType::Int => match v {
+                Some(i) => match i.parse::<isize>() {
+                    Ok(i) => Ok(FlagValue::Int(i)),
+                    Err(_) => Err(FlagError::ValueTypeError),
+                },
+                None => Err(FlagError::ArgumentError),
             },
-            FlagType::Int => match self.option_index(&v) {
-                Some(index) => Some(FlagValue::Int(
-                    v[index + 1].parse::<isize>().unwrap_or_else(|_| {
-                        panic!(format!("The value of `{}` flag should be int.", self.name))
-                    }),
-                )),
-                None => None,
-            },
-            FlagType::Float => match self.option_index(&v) {
-                Some(index) => Some(FlagValue::Float(
-                    v[index + 1].parse::<f64>().unwrap_or_else(|_| {
-                        panic!(format!(
-                            "The value of `{}` flag should be float.",
-                            self.name
-                        ))
-                    }),
-                )),
-                None => None,
+            FlagType::Float => match v {
+                Some(f) => match f.parse::<f64>() {
+                    Ok(f) => Ok(FlagValue::Float(f)),
+                    Err(_) => Err(FlagError::ValueTypeError),
+                },
+                None => Err(FlagError::ArgumentError),
             },
         }
     }
@@ -154,15 +161,15 @@ mod tests {
             "-c".to_string(),
         ];
         {
-            let f = Flag::new("bool", "", FlagType::Bool);
+            let f = Flag::new("bool", FlagType::Bool);
             assert_eq!(f.option_index(&v), Some(3));
         }
         {
-            let f = Flag::new("age", "", FlagType::Bool).alias("a");
+            let f = Flag::new("age", FlagType::Bool).alias("a");
             assert_eq!(f.option_index(&v), Some(2));
         }
         {
-            let f = Flag::new("dance", "", FlagType::Bool);
+            let f = Flag::new("dance", FlagType::Bool);
             assert_eq!(f.option_index(&v), None);
         }
     }
@@ -170,24 +177,24 @@ mod tests {
     #[test]
     #[should_panic]
     fn construct_fail_1() {
-        Flag::new("bo=ol", "", FlagType::Bool);
+        Flag::new("bo=ol", FlagType::Bool);
     }
 
     #[test]
     #[should_panic]
     fn construct_fail_2() {
-        Flag::new("------bool", "", FlagType::Bool);
+        Flag::new("------bool", FlagType::Bool);
     }
 
     #[test]
     #[should_panic]
     fn construct_fail_3() {
-        Flag::new("cool flag", "", FlagType::Bool);
+        Flag::new("cool flag", FlagType::Bool);
     }
 
     #[test]
     fn bool_flag_test() {
-        let bool_flag = Flag::new("bool", "", FlagType::Bool);
+        let bool_flag = Flag::new("bool", FlagType::Bool);
         let v = vec![
             "cli".to_string(),
             "command".to_string(),
@@ -195,15 +202,15 @@ mod tests {
             "--bool".to_string(),
         ];
 
-        match bool_flag.value(&v) {
-            Some(FlagValue::Bool(val)) => assert!(val),
+        match bool_flag.value(Some(v[3].to_owned())) {
+            Ok(FlagValue::Bool(val)) => assert!(val),
             _ => assert!(false),
         }
     }
 
     #[test]
     fn string_flag_test() {
-        let string_flag = Flag::new("string", "", FlagType::String);
+        let string_flag = Flag::new("string", FlagType::String);
         let v = vec![
             "cli".to_string(),
             "command".to_string(),
@@ -212,15 +219,15 @@ mod tests {
             "test".to_string(),
         ];
 
-        match string_flag.value(&v) {
-            Some(FlagValue::String(val)) => assert_eq!("test".to_string(), val),
+        match string_flag.value(Some(v[4].to_owned())) {
+            Ok(FlagValue::String(val)) => assert_eq!("test".to_string(), val),
             _ => assert!(false),
         }
     }
 
     #[test]
     fn int_flag_test() {
-        let int_flag = Flag::new("int", "", FlagType::Int);
+        let int_flag = Flag::new("int", FlagType::Int);
         let v = vec![
             "cli".to_string(),
             "command".to_string(),
@@ -229,15 +236,15 @@ mod tests {
             "100".to_string(),
         ];
 
-        match int_flag.value(&v) {
-            Some(FlagValue::Int(val)) => assert_eq!(100, val),
+        match int_flag.value(Some(v[4].to_owned())) {
+            Ok(FlagValue::Int(val)) => assert_eq!(100, val),
             _ => assert!(false),
         }
     }
 
     #[test]
     fn float_flag_test() {
-        let float_flag = Flag::new("float", "", FlagType::Float);
+        let float_flag = Flag::new("float", FlagType::Float);
         let v = vec![
             "cli".to_string(),
             "command".to_string(),
@@ -246,8 +253,8 @@ mod tests {
             "1.23".to_string(),
         ];
 
-        match float_flag.value(&v) {
-            Some(FlagValue::Float(val)) => assert_eq!(1.23, val),
+        match float_flag.value(Some(v[4].to_owned())) {
+            Ok(FlagValue::Float(val)) => assert_eq!(1.23, val),
             _ => assert!(false),
         }
     }

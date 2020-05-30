@@ -1,16 +1,19 @@
-use seahorse::{color, App, Command, Context, Flag, FlagType};
+use seahorse::{color, error::FlagError, App, Command, Context, Flag, FlagType};
 use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let app = App::new()
-        .name(color::yellow("multiple_app"))
+    let app = App::new(color::yellow("multiple_app"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .description(env!("CARGO_PKG_DESCRIPTION"))
         .usage("multiple_app [command] [arg]")
         .version(env!("CARGO_PKG_VERSION"))
         .action(|c: &Context| println!("{:?} : {}", c.args, c.bool_flag("bool")))
-        .flag(Flag::new("bool", "multiple_app [args] --bool(-b)", FlagType::Bool).alias("b"))
+        .flag(
+            Flag::new("bool", FlagType::Bool)
+                .usage("multiple_app [args] --bool(-b)")
+                .alias("b"),
+        )
         .command(add_command())
         .command(hello_command());
 
@@ -25,25 +28,44 @@ fn hello_action(c: &Context) {
     }
 
     match c.int_flag("age") {
-        Some(age) => println!("{:?} is {} years old", c.args, age),
-        None => println!("I don't know {:?}'s age", c.args),
+        Ok(age) => println!("{:?} is {} years old", c.args, age),
+        Err(e) => match e {
+            FlagError::TypeError => println!("age flag type error"),
+            FlagError::ValueTypeError => println!("value type error"),
+            FlagError::Undefined => println!("undefined age flag"),
+            FlagError::ArgumentError => println!("age flag argument error"),
+            FlagError::NotFound => println!("not found age flag"),
+        },
+    }
+
+    match c.string_flag("neko") {
+        Ok(neko) => println!("neko say {}", neko),
+        Err(e) => match e {
+            FlagError::TypeError => println!("neko flag type error"),
+            FlagError::ValueTypeError => println!("value type error"),
+            FlagError::Undefined => println!("undefined neko flag"),
+            FlagError::ArgumentError => println!("neko flag argument error"),
+            FlagError::NotFound => println!("not found neko flag"),
+        },
     }
 }
 
 fn hello_command() -> Command {
-    Command::new()
-        .name("hello")
-        .usage("multiple_app hello [name]")
+    Command::new("hello")
+        .usage("multiple_app hello(he, h) [name]")
+        .alias("he")
+        .alias("h")
         .action(hello_action)
-        .flag(Flag::new("bye", "multiple_app hello [name] --bye(-b)", FlagType::Bool).alias("b"))
         .flag(
-            Flag::new(
-                "age",
-                "multiple_app hello [name] --age(-a, -ag) [age]",
-                FlagType::Int,
-            )
-            .alias("a")
-            .alias("ag"),
+            Flag::new("bye", FlagType::Bool)
+                .usage("multiple_app hello [name] --bye(-b)")
+                .alias("b"),
+        )
+        .flag(
+            Flag::new("age", FlagType::Int)
+                .usage("multiple_app hello [name] --age(-a, -ag) [age]")
+                .alias("a")
+                .alias("ag"),
         )
 }
 
@@ -53,8 +75,7 @@ fn add_action(c: &Context) {
 }
 
 fn add_command() -> Command {
-    Command::new()
-        .name("add")
+    Command::new("add")
         .usage("multiple_app add [num...]")
         .action(add_action)
 }

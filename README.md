@@ -24,7 +24,7 @@ To use seahorse, add this to your Cargo.toml:
 
 ```toml
 [dependencies]
-seahorse = "0.7.1"
+seahorse = "1.0.0"
 ```
 
 ## Example
@@ -52,14 +52,13 @@ use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-        let app = App::new()
-            .name(env!("CARGO_PKG_NAME"))
-            .author(env!("CARGO_PKG_AUTHORS"))
-            .version(env!("CARGO_PKG_VERSION"))
-            .usage("cli [args]")
-            .action(|c| println("Hello, {:?}", c.args));
-    
-        app.run(args);
+    let app = App::new(env!("CARGO_PKG_NAME"))
+        .author(env!("CARGO_PKG_AUTHORS"))
+        .version(env!("CARGO_PKG_VERSION"))
+        .usage("cli [args]")
+        .action(|c| println("Hello, {:?}", c.args));
+
+    app.run(args);
 }
 ```
 
@@ -71,13 +70,12 @@ $ ./target/release/cli John
 
 ### Multiple command application
 ```rust
-use seahorse::{App, Context, Command, Flag, FlagType};
+use seahorse::{App, Context, Command};
 use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let app = App::new()
-        .name(env!("CARGO_PKG_NAME"))
+    let app = App::new(env!("CARGO_PKG_NAME"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .version(env!("CARGO_PKG_VERSION"))
         .usage("cli [name]")
@@ -98,9 +96,9 @@ fn add_action(c: &Context) {
 }
 
 fn add_command() -> Command {
-    Command::new()
-        .name("add")
-        .usage("cli add [nums...]")
+    Command::new("add")
+        .alias("a")
+        .usage("cli add(a****) [nums...]")
         .action(add_action)
 }
 
@@ -110,9 +108,9 @@ fn sub_action(c: &Context) {
 }
 
 fn sub_command() -> Command {
-    Command::new()
-        .name("sub")
-        .usage("cli sub [nums...]")
+    Command::new("sub")
+        .alias("s")
+        .usage("cli sub(s) [nums...]")
         .action(sub_action)
 }
 ```
@@ -131,19 +129,26 @@ $ cli sub 12 23 89
 ### Branch processing by flag
 
 ```rust
-use seahorse::{App, Command, Context, Flag, FlagType};
+use seahorse::{App, Command, Context, Flag, FlagType, error::FlagError};
 use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let app = App::new()
-        .name(env!("CARGO_PKG_NAME"))
+    let app = App::new(env!("CARGO_PKG_NAME"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .version(env!("CARGO_PKG_VERSION"))
         .usage("cli [name]")
         .action(default_action)
-        .flag(Flag::new("bye", "cli [name] --bye(-b)", FlagType::Bool).alias("b"))
-        .flag(Flag::new("age", "cli [name] --age(-a)", FlagType::Int).alias("a"))
+        .flag(
+            Flag::new("bye", FlagType::Bool)
+                .usage("cli [name] --bye(-b)")
+                .alias("b"),
+        )
+        .flag(
+            Flag::new("age", FlagType::Int)
+                .usage("cli [name] --age(-a)")
+                .alias("a"),
+        )
         .command(calc_command());
 
     app.run(args);
@@ -156,14 +161,14 @@ fn default_action(c: &Context) {
         println!("Hello, {:?}", c.args);
     }
 
-    if let Some(age) = c.int_flag("age") {
+    if let Ok(age) = c.int_flag("age") {
         println!("{:?} is {} years old", c.args, age);
     }
 }
 
 fn calc_action(c: &Context) {
     match c.string_flag("operator") {
-        Some(op) => {
+        Ok(op) => {
             let sum: i32 = match &*op {
                 "add" => c.args.iter().map(|n| n.parse::<i32>().unwrap()).sum(),
                 "sub" => c.args.iter().map(|n| n.parse::<i32>().unwrap() * -1).sum(),
@@ -172,22 +177,25 @@ fn calc_action(c: &Context) {
 
             println!("{}", sum);
         }
-        None => panic!(),
+        Err(e) => match e {
+            FlagError::Undefiled => panic!("undefined operator..."), 
+            FlagError::ArgumentError => panic!("argument error..."), 
+            FlagError::NotFound => panic!("not found flag..."), 
+            FlagError::ValueTypeError => panic!("value type mismatch..."), 
+            FlagError::TypeError => panic!("flag type mismatch..."), 
+        },
     }
 }
 
 fn calc_command() -> Command {
-    Command::new()
-        .name("calc")
-        .usage("cli calc [nums...]")
+    Command::new("calc")
+        .alias("cl, c")
+        .usage("cli calc(cl, c) [nums...]")
         .action(calc_action)
         .flag(
-            Flag::new(
-                "operator",
-                "cli calc [nums...] --operator(-op) [add | sub]",
-                FlagType::String,
-            )
-            .alias("op"),
+            Flag::new("operator", FlagType::String)
+                .usage("cli calc [nums...] --operator(-op) [add | sub]")
+                .alias("op"),
         )
 }
 ```
