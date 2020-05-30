@@ -97,7 +97,8 @@ fn add_action(c: &Context) {
 
 fn add_command() -> Command {
     Command::new("add")
-        .usage("cli add [nums...]")
+        .alias("a")
+        .usage("cli add(a****) [nums...]")
         .action(add_action)
 }
 
@@ -108,7 +109,8 @@ fn sub_action(c: &Context) {
 
 fn sub_command() -> Command {
     Command::new("sub")
-        .usage("cli sub [nums...]")
+        .alias("s")
+        .usage("cli sub(s) [nums...]")
         .action(sub_action)
 }
 ```
@@ -187,7 +189,8 @@ fn calc_action(c: &Context) {
 
 fn calc_command() -> Command {
     Command::new("calc")
-        .usage("cli calc [nums...]")
+        .alias("cl, c")
+        .usage("cli calc(cl, c) [nums...]")
         .action(calc_action)
         .flag(
             Flag::new("operator", FlagType::String)
