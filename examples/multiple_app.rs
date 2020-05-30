@@ -52,7 +52,9 @@ fn hello_action(c: &Context) {
 
 fn hello_command() -> Command {
     Command::new("hello")
-        .usage("multiple_app hello [name]")
+        .usage("multiple_app hello(he, h) [name]")
+        .alias("he")
+        .alias("h")
         .action(hello_action)
         .flag(
             Flag::new("bye", FlagType::Bool)
