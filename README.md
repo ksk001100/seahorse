@@ -56,7 +56,7 @@ fn main() {
         .author(env!("CARGO_PKG_AUTHORS"))
         .version(env!("CARGO_PKG_VERSION"))
         .usage("cli [args]")
-        .action(|c| println("Hello, {:?}", c.args));
+        .action(|c| println!("Hello, {:?}", c.args));
 
     app.run(args);
 }
@@ -178,7 +178,7 @@ fn calc_action(c: &Context) {
             println!("{}", sum);
         }
         Err(e) => match e {
-            FlagError::Undefiled => panic!("undefined operator..."), 
+            FlagError::Undefined => panic!("undefined operator..."), 
             FlagError::ArgumentError => panic!("argument error..."), 
             FlagError::NotFound => panic!("not found flag..."), 
             FlagError::ValueTypeError => panic!("value type mismatch..."), 
