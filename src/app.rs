@@ -273,7 +273,7 @@ impl App {
             let flag_helps = &flags.iter().map(|f| {
                 let alias = match &f.alias {
                     Some(alias) => alias
-                        .into_iter()
+                        .iter()
                         .map(|a| format!("-{}", a))
                         .collect::<Vec<String>>()
                         .join(", "),
@@ -286,10 +286,10 @@ impl App {
                     _ => "",
                 };
 
-                let help = if alias.len() > 0 {
-                    format!("{}, --{} {}", alias, f.name, val)
-                } else {
+                let help = if alias.is_empty() {
                     format!("--{} {}", f.name, val)
+                } else {
+                    format!("{}, --{} {}", alias, f.name, val)
                 };
 
                 (help, f.description.clone())

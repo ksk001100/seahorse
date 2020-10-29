@@ -18,7 +18,6 @@ fn main() {
         );
 
     app.run(args);
-
 }
 
 fn action(c: &Context) {
