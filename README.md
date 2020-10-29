@@ -24,7 +24,7 @@ To use seahorse, add this to your Cargo.toml:
 
 ```toml
 [dependencies]
-seahorse = "1.0.0"
+seahorse = "1.1.0"
 ```
 
 ## Example
@@ -53,6 +53,7 @@ use std::env;
 fn main() {
     let args: Vec<String> = env::args().collect();
     let app = App::new(env!("CARGO_PKG_NAME"))
+        .description(env!("CARGO_PKG_DESCRIPTION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .version(env!("CARGO_PKG_VERSION"))
         .usage("cli [args]")
@@ -76,6 +77,7 @@ use std::env;
 fn main() {
     let args: Vec<String> = env::args().collect();
     let app = App::new(env!("CARGO_PKG_NAME"))
+        .description(env!("CARGO_PKG_DESCRIPTION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .version(env!("CARGO_PKG_VERSION"))
         .usage("cli [name]")
@@ -97,8 +99,9 @@ fn add_action(c: &Context) {
 
 fn add_command() -> Command {
     Command::new("add")
+        .description("add command")
         .alias("a")
-        .usage("cli add(a****) [nums...]")
+        .usage("cli add(a) [nums...]")
         .action(add_action)
 }
 
@@ -109,6 +112,7 @@ fn sub_action(c: &Context) {
 
 fn sub_command() -> Command {
     Command::new("sub")
+        .description("sub command")
         .alias("s")
         .usage("cli sub(s) [nums...]")
         .action(sub_action)
@@ -135,6 +139,7 @@ use std::env;
 fn main() {
     let args: Vec<String> = env::args().collect();
     let app = App::new(env!("CARGO_PKG_NAME"))
+        .description(env!("CARGO_PKG_DESCRIPTION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .version(env!("CARGO_PKG_VERSION"))
         .usage("cli [name]")
@@ -189,6 +194,7 @@ fn calc_action(c: &Context) {
 
 fn calc_command() -> Command {
     Command::new("calc")
+        .description("calc commadn")
         .alias("cl, c")
         .usage("cli calc(cl, c) [nums...]")
         .action(calc_action)

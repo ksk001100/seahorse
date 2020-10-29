@@ -1,4 +1,4 @@
-use crate::{Action, Command, Context, Flag};
+use crate::{Action, Command, Context, Flag, FlagType, Help};
 
 /// Multiple action application entry point
 #[derive(Default)]
@@ -199,11 +199,6 @@ impl App {
     /// app.run(args);
     /// ```
     pub fn run(&self, args: Vec<String>) {
-        if args.contains(&"--help".to_string()) {
-            self.help();
-            return;
-        }
-
         let args = Self::normalized_args(args);
         let (cmd_v, args_v) = match args.len() {
             1 => args.split_at(1),
@@ -219,91 +214,22 @@ impl App {
         };
 
         match self.select_command(&cmd) {
-            Some(command) => command.run(args_v.to_vec(), self.generate_help_text()),
+            Some(command) => command.run(args_v.to_vec()),
             None => match self.action {
-                Some(action) => action(&Context::new(
-                    args[1..].to_vec(),
-                    self.flags.clone(),
-                    self.generate_help_text(),
-                )),
+                Some(action) => {
+                    if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string()) {
+                        self.help();
+                        return;
+                    }
+                    action(&Context::new(
+                        args[1..].to_vec(),
+                        self.flags.clone(),
+                        self.help_text(),
+                    ));
+                }
                 None => self.help(),
             },
         }
-    }
-
-    /// Generate help text
-    fn generate_help_text(&self) -> String {
-        let mut text = String::new();
-
-        text += &format!("Name\n\t{}\n\n", self.name);
-
-        if let Some(author) = &self.author {
-            text += &format!("Author:\n\t{}\n\n", author);
-        }
-
-        if let Some(description) = &self.description {
-            text += &format!("Description:\n\t{}\n\n", description);
-        }
-
-        if let Some(usage) = &self.usage {
-            text += &format!("Usage:\n\t{}\n", usage)
-        }
-
-        if let Some(flags) = &self.flags {
-            for flag in flags {
-                if let Some(usage) = &flag.usage {
-                    text += &format!("\t{}\n", usage);
-                }
-            }
-            text += "\n";
-        }
-
-        if let Some(commands) = &self.commands {
-            text += "\nCommands:\n";
-
-            let name_max_len = &commands.iter().map(|c| c.name.len()).max().unwrap();
-            let whitespace = " ".repeat(name_max_len + 3);
-
-            for c in commands {
-                let command_name_len = c.name.len();
-
-                let usage = match &c.usage {
-                    Some(usage) => usage,
-                    None => "",
-                };
-
-                text += &format!(
-                    "\t{} {}: {}\n",
-                    c.name,
-                    " ".repeat(name_max_len - command_name_len),
-                    usage
-                );
-
-                if let Some(flags) = &c.flags {
-                    for flag in flags {
-                        let usage = match &flag.usage {
-                            Some(usage) => usage,
-                            None => "",
-                        };
-                        text += &format!("\t{}{}\n", whitespace, usage);
-                    }
-                }
-
-                text += "\n";
-            }
-        }
-
-        if let Some(version) = &self.version {
-            text += &format!("Version:\n\t{}\n", version);
-        }
-
-        text
-    }
-
-    /// Application help
-    /// Displays information about the application
-    fn help(&self) {
-        println!("{}", self.generate_help_text());
     }
 
     /// Select command
@@ -332,6 +258,132 @@ impl App {
             }
             acc
         })
+    }
+
+    fn flag_help_text(&self) -> String {
+        let mut text = String::new();
+        text += "Flags:\n";
+        let help_flag = "-h, --help";
+
+        if let Some(flags) = &self.flags {
+            let int_val = "<int>";
+            let float_val = "<float>";
+            let string_val = "<string>";
+
+            let flag_helps = &flags.iter().map(|f| {
+                let alias = match &f.alias {
+                    Some(alias) => alias
+                        .into_iter()
+                        .map(|a| format!("-{}", a))
+                        .collect::<Vec<String>>()
+                        .join(", "),
+                    None => String::new(),
+                };
+                let val = match f.flag_type {
+                    FlagType::Int => int_val,
+                    FlagType::Float => float_val,
+                    FlagType::String => string_val,
+                    _ => "",
+                };
+
+                let help = if alias.len() > 0 {
+                    format!("{}, --{} {}", alias, f.name, val)
+                } else {
+                    format!("--{} {}", f.name, val)
+                };
+
+                (help, f.usage.clone())
+            });
+
+            let flag_name_max_len = flag_helps
+                .clone()
+                .map(|h| h.0.len())
+                .chain(vec![help_flag.len()].into_iter())
+                .max()
+                .unwrap();
+
+            for flag_help in flag_helps.clone().into_iter() {
+                text += &format!("\t{}", flag_help.0);
+
+                if let Some(usage) = &flag_help.1 {
+                    let flag_name_len = flag_help.0.len();
+                    text += &format!(
+                        "{} : {}\n",
+                        " ".repeat(flag_name_max_len - flag_name_len),
+                        usage
+                    );
+                }
+            }
+
+            text += &format!(
+                "\t{}{} : Show help\n",
+                help_flag,
+                " ".repeat(flag_name_max_len - help_flag.len())
+            );
+        } else {
+            text += &format!("\t{} : Show help\n", help_flag);
+        }
+
+        text
+    }
+
+    fn command_help_text(&self) -> String {
+        let mut text = String::new();
+
+        if let Some(commands) = &self.commands {
+            text += "\nCommands:\n";
+
+            let name_max_len = &commands.iter().map(|c| c.name.len()).max().unwrap();
+
+            for c in commands {
+                let command_name_len = c.name.len();
+
+                let usage = match &c.usage {
+                    Some(usage) => usage,
+                    None => "",
+                };
+
+                text += &format!(
+                    "\t{} {}: {}\n",
+                    c.name,
+                    " ".repeat(name_max_len - command_name_len),
+                    usage
+                );
+            }
+
+            text += "\n"
+        }
+
+        text
+    }
+}
+
+impl Help for App {
+    fn help_text(&self) -> String {
+        let mut text = String::new();
+
+        text += &format!("Name\n\t{}\n\n", self.name);
+
+        if let Some(author) = &self.author {
+            text += &format!("Author:\n\t{}\n\n", author);
+        }
+
+        if let Some(description) = &self.description {
+            text += &format!("Description:\n\t{}\n\n", description);
+        }
+
+        if let Some(usage) = &self.usage {
+            text += &format!("Usage:\n\t{}\n\n", usage);
+        }
+
+        text += &self.flag_help_text();
+        text += &self.command_help_text();
+
+        if let Some(version) = &self.version {
+            text += &format!("Version:\n\t{}\n", version);
+        }
+
+        text
     }
 }
 
@@ -370,6 +422,7 @@ mod tests {
         };
         let c = Command::new("hello")
             .alias("h")
+            .description("hello command")
             .usage("test hello(h) args")
             .action(a)
             .flag(Flag::new("bool", FlagType::Bool))
