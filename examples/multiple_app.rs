@@ -52,6 +52,7 @@ fn hello_action(c: &Context) {
 
 fn hello_command() -> Command {
     Command::new("hello")
+        .description("hello command")
         .usage("multiple_app hello(he, h) [name]")
         .alias("he")
         .alias("h")
@@ -76,6 +77,7 @@ fn add_action(c: &Context) {
 
 fn add_command() -> Command {
     Command::new("add")
+        .description("add command")
         .usage("multiple_app add [num...]")
         .action(add_action)
 }
