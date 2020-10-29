@@ -146,12 +146,12 @@ fn main() {
         .action(default_action)
         .flag(
             Flag::new("bye", FlagType::Bool)
-                .usage("cli [name] --bye(-b)")
+                .description("Bye flag")
                 .alias("b"),
         )
         .flag(
             Flag::new("age", FlagType::Int)
-                .usage("cli [name] --age(-a)")
+                .description("Age flag")
                 .alias("a"),
         )
         .command(calc_command());
@@ -194,13 +194,13 @@ fn calc_action(c: &Context) {
 
 fn calc_command() -> Command {
     Command::new("calc")
-        .description("calc commadn")
+        .description("calc command")
         .alias("cl, c")
         .usage("cli calc(cl, c) [nums...]")
         .action(calc_action)
         .flag(
             Flag::new("operator", FlagType::String)
-                .usage("cli calc [nums...] --operator(-op) [add | sub]")
+                .description("Operator flag(ex. cli calc --operator add 1 2 3)")
                 .alias("op"),
         )
 }
