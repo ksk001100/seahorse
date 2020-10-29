@@ -7,8 +7,8 @@ use crate::error::FlagError;
 pub struct Flag {
     /// Flag name
     pub name: String,
-    /// Flag usage
-    pub usage: Option<String>,
+    /// Flag description
+    pub description: Option<String>,
     /// Flag type
     pub flag_type: FlagType,
     /// Flag alias
@@ -67,13 +67,13 @@ impl Flag {
 
         Self {
             name,
-            usage: None,
+            description: None,
             flag_type,
             alias: None,
         }
     }
 
-    /// Set usage of the flag
+    /// Set description of the flag
     ///
     /// Example
     ///
@@ -81,10 +81,10 @@ impl Flag {
     /// use seahorse::{Flag, FlagType};
     ///
     /// let bool_flag = Flag::new("bool", FlagType::Bool)
-    ///     .usage("cli cmd Hello --bool");
+    ///     .description("cli cmd Hello --bool");
     /// ```
-    pub fn usage<T: Into<String>>(mut self, usage: T) -> Self {
-        self.usage = Some(usage.into());
+    pub fn description<T: Into<String>>(mut self, description: T) -> Self {
+        self.description = Some(description.into());
         self
     }
 

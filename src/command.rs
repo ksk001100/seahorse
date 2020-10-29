@@ -164,7 +164,7 @@ impl Command {
                     format!("--{} {}", f.name, val)
                 };
 
-                (help, f.usage.clone())
+                (help, f.description.clone())
             });
 
             let flag_name_max_len = flag_helps

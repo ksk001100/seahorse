@@ -13,11 +13,12 @@ fn main() {
         .action(action)
         .flag(
             Flag::new("bye", FlagType::Bool)
-                .usage("single_app args --bye(-b)")
+                .description("single_app args --bye(-b)")
                 .alias("b"),
         );
 
     app.run(args);
+
 }
 
 fn action(c: &Context) {

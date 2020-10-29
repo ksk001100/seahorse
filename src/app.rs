@@ -292,7 +292,7 @@ impl App {
                     format!("--{} {}", f.name, val)
                 };
 
-                (help, f.usage.clone())
+                (help, f.description.clone())
             });
 
             let flag_name_max_len = flag_helps
@@ -338,8 +338,8 @@ impl App {
             for c in commands {
                 let command_name_len = c.name.len();
 
-                let usage = match &c.usage {
-                    Some(usage) => usage,
+                let description = match &c.description {
+                    Some(description) => description,
                     None => "",
                 };
 
@@ -347,7 +347,7 @@ impl App {
                     "\t{} {}: {}\n",
                     c.name,
                     " ".repeat(name_max_len - command_name_len),
-                    usage
+                    description
                 );
             }
 

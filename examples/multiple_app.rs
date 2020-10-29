@@ -11,7 +11,7 @@ fn main() {
         .action(|c: &Context| println!("{:?} : {}", c.args, c.bool_flag("bool")))
         .flag(
             Flag::new("bool", FlagType::Bool)
-                .usage("multiple_app [args] --bool(-b)")
+                .description("bool flag")
                 .alias("b"),
         )
         .command(add_command())
@@ -59,12 +59,12 @@ fn hello_command() -> Command {
         .action(hello_action)
         .flag(
             Flag::new("bye", FlagType::Bool)
-                .usage("multiple_app hello [name] --bye(-b)")
+                .description("bye flag")
                 .alias("b"),
         )
         .flag(
             Flag::new("age", FlagType::Int)
-                .usage("multiple_app hello [name] --age(-a, -ag) [age]")
+                .description("age flag")
                 .alias("a")
                 .alias("ag"),
         )
