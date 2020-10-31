@@ -54,8 +54,8 @@ fn hello_command() -> Command {
     Command::new("hello")
         .description("hello command")
         .usage("multiple_app hello(he, h) [name]")
-        .alias("he")
         .alias("h")
+        .alias("he")
         .action(hello_action)
         .flag(
             Flag::new("bye", FlagType::Bool)
