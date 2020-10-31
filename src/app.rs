@@ -333,10 +333,24 @@ impl App {
         if let Some(commands) = &self.commands {
             text += "\nCommands:\n";
 
-            let name_max_len = &commands.iter().map(|c| c.name.len()).max().unwrap();
+            let name_max_len = &commands
+                .iter()
+                .map(|c| {
+                    if let Some(alias) = &c.alias {
+                        format!("{}, {}", alias.join(", "), c.name).len()
+                    } else {
+                        c.name.len()
+                    }
+                })
+                .max()
+                .unwrap();
 
             for c in commands {
-                let command_name_len = c.name.len();
+                let command_name = if let Some(alias) = &c.alias {
+                    format!("{}, {}", alias.join(", "), c.name)
+                } else {
+                    c.name.clone()
+                };
 
                 let description = match &c.description {
                     Some(description) => description,
@@ -345,8 +359,8 @@ impl App {
 
                 text += &format!(
                     "\t{} {}: {}\n",
-                    c.name,
-                    " ".repeat(name_max_len - command_name_len),
+                    command_name,
+                    " ".repeat(name_max_len - command_name.len()),
                     description
                 );
             }
