@@ -24,7 +24,7 @@ To use seahorse, add this to your Cargo.toml:
 
 ```toml
 [dependencies]
-seahorse = "1.0.0"
+seahorse = "1.1.0"
 ```
 
 ## Example
@@ -53,6 +53,7 @@ use std::env;
 fn main() {
     let args: Vec<String> = env::args().collect();
     let app = App::new(env!("CARGO_PKG_NAME"))
+        .description(env!("CARGO_PKG_DESCRIPTION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .version(env!("CARGO_PKG_VERSION"))
         .usage("cli [args]")
@@ -76,6 +77,7 @@ use std::env;
 fn main() {
     let args: Vec<String> = env::args().collect();
     let app = App::new(env!("CARGO_PKG_NAME"))
+        .description(env!("CARGO_PKG_DESCRIPTION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .version(env!("CARGO_PKG_VERSION"))
         .usage("cli [name]")
@@ -97,8 +99,9 @@ fn add_action(c: &Context) {
 
 fn add_command() -> Command {
     Command::new("add")
+        .description("add command")
         .alias("a")
-        .usage("cli add(a****) [nums...]")
+        .usage("cli add(a) [nums...]")
         .action(add_action)
 }
 
@@ -109,6 +112,7 @@ fn sub_action(c: &Context) {
 
 fn sub_command() -> Command {
     Command::new("sub")
+        .description("sub command")
         .alias("s")
         .usage("cli sub(s) [nums...]")
         .action(sub_action)
@@ -135,18 +139,19 @@ use std::env;
 fn main() {
     let args: Vec<String> = env::args().collect();
     let app = App::new(env!("CARGO_PKG_NAME"))
+        .description(env!("CARGO_PKG_DESCRIPTION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .version(env!("CARGO_PKG_VERSION"))
         .usage("cli [name]")
         .action(default_action)
         .flag(
             Flag::new("bye", FlagType::Bool)
-                .usage("cli [name] --bye(-b)")
+                .description("Bye flag")
                 .alias("b"),
         )
         .flag(
             Flag::new("age", FlagType::Int)
-                .usage("cli [name] --age(-a)")
+                .description("Age flag")
                 .alias("a"),
         )
         .command(calc_command());
@@ -189,12 +194,13 @@ fn calc_action(c: &Context) {
 
 fn calc_command() -> Command {
     Command::new("calc")
+        .description("calc command")
         .alias("cl, c")
         .usage("cli calc(cl, c) [nums...]")
         .action(calc_action)
         .flag(
             Flag::new("operator", FlagType::String)
-                .usage("cli calc [nums...] --operator(-op) [add | sub]")
+                .description("Operator flag(ex. cli calc --operator add 1 2 3)")
                 .alias("op"),
         )
 }
