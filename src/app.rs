@@ -1,7 +1,7 @@
 use crate::{Action, Command, Context, Flag, FlagType, Help};
 
 /// Multiple action application entry point
-#[derive(Default)]
+#[derive(Default, Debug, Clone, Copy)]
 pub struct App {
     /// Application name
     pub name: String,
