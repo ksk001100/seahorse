@@ -628,7 +628,9 @@ mod tests {
     fn create_commands_through_for_loop() {
         let app = App::new("test")
             .flag(Flag::new("bool", FlagType::Bool));
-        vec!["dev", "prod"].into_iter().map(|a| app.clone().command(Command::new(a)));
+        vec!["dev", "prod"]
+            .into_iter()
+            .map(|a| app.clone().command(Command::new(a)));
         app.run(vec!["test".to_string(), "prod".to_string()]);
         assert_eq!(app.name, "test".to_string());
     }
