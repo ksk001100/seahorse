@@ -1,7 +1,7 @@
 use crate::{Action, Context, Flag, FlagType, Help};
 
 /// Application command type
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Command {
     /// Command name
     pub name: String,

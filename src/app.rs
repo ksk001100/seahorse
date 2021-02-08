@@ -1,7 +1,7 @@
 use crate::{Action, Command, Context, Flag, FlagType, Help};
 
 /// Multiple action application entry point
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Clone)]
 pub struct App {
     /// Application name
     pub name: String,
@@ -622,5 +622,14 @@ mod tests {
         assert_eq!(app.author, Some("Author <author@example.com>".to_string()));
         assert_eq!(app.description, Some("This is a great tool.".to_string()));
         assert_eq!(app.version, Some("0.0.1".to_string()));
+    }
+
+    #[test]
+    fn create_commands_through_for_loop() {
+        let app = App::new("test")
+            .flag(Flag::new("bool", FlagType::Bool));
+        vec!["dev", "prod"].into_iter().map(|a| app.clone().command(Command::new(a)));
+        app.run(vec!["test".to_string(), "prod".to_string()]);
+        assert_eq!(app.name, "test".to_string());
     }
 }
