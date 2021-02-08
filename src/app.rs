@@ -627,10 +627,13 @@ mod tests {
     #[test]
     fn create_commands_through_for_loop() {
         let app = App::new("test").flag(Flag::new("bool", FlagType::Bool));
-        vec!["dev", "prod"]
+       let apps = vec!["dev", "prod"]
             .into_iter()
             .map(|a| app.clone().command(Command::new(a)));
-        app.run(vec!["test".to_string(), "prod".to_string()]);
-        assert_eq!(app.name, "test".to_string());
+        
+        for app in apps {
+            app.run(vec!["test".to_string(), "prod".to_string()]);
+            assert_eq!(app.name, "test".to_string());
+        }
     }
 }
