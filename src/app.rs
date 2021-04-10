@@ -364,8 +364,6 @@ impl App {
                     description
                 );
             }
-
-            text += "\n"
         }
 
         text
@@ -376,7 +374,7 @@ impl Help for App {
     fn help_text(&self) -> String {
         let mut text = String::new();
 
-        text += &format!("Name\n\t{}\n\n", self.name);
+        text += &format!("Name:\n\t{}\n\n", self.name);
 
         if let Some(author) = &self.author {
             text += &format!("Author:\n\t{}\n\n", author);
@@ -394,7 +392,7 @@ impl Help for App {
         text += &self.command_help_text();
 
         if let Some(version) = &self.version {
-            text += &format!("Version:\n\t{}\n", version);
+            text += &format!("\nVersion:\n\t{}\n", version);
         }
 
         text
