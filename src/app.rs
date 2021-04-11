@@ -138,10 +138,7 @@ impl App {
                 .iter()
                 .any(|registered| registered.name == command.name)
             {
-                panic!(
-                    "{}",
-                    format!(r#"Command name "{}" is already registered."#, command.name)
-                );
+                panic!(r#"Command name "{}" is already registered."#, command.name);
             }
             (*commands).push(command);
         } else {

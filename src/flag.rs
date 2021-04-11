@@ -48,29 +48,20 @@ impl Flag {
         let name = name.into();
         if name.starts_with('-') {
             panic!(
-                "{}",
-                format!(
-                    r#""{}" is invalid flag name. Flag name cannnot start with "-"."#,
-                    name
-                )
+                r#""{}" is invalid flag name. Flag name cannnot start with "-"."#,
+                name
             )
         }
         if name.contains('=') {
             panic!(
-                "{}",
-                format!(
-                    r#""{}" is invalid flag name. Flag name cannnot contain "="."#,
-                    name
-                )
+                r#""{}" is invalid flag name. Flag name cannnot contain "="."#,
+                name
             )
         }
         if name.contains(' ') {
             panic!(
-                "{}",
-                format!(
-                    r#""{}" is invalid flag name. Flag name cannnot contain whitespaces."#,
-                    name
-                )
+                r#""{}" is invalid flag name. Flag name cannnot contain whitespaces."#,
+                name
             )
         }
 
