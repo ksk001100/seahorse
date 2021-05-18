@@ -10,7 +10,7 @@
 ![Logo](https://repository-images.githubusercontent.com/226840735/d3e77500-51a0-11ea-845e-3cc87714278b)
 
 
-<div style="text-align:center;">
+<div align="center">
 
 A minimal CLI framework written in Rust
 
