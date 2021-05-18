@@ -9,9 +9,15 @@
 
 ![Logo](https://repository-images.githubusercontent.com/226840735/d3e77500-51a0-11ea-845e-3cc87714278b)
 
+
+<div style="text-align:center;">
+
 A minimal CLI framework written in Rust
 
 [![Join our Discord server!](https://invidget.switchblade.xyz/844112922597785620?theme=dark)](http://discord.gg/844112922597785620)
+
+</div>
+
 
 ## Features
 - Easy to use
