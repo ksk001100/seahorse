@@ -1,9 +1,9 @@
-use seahorse::{color, error::FlagError, App, Command, Context, Flag, FlagType};
+use seahorse::{error::FlagError, App, Command, Context, Flag, FlagType};
 use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let app = App::new(color::yellow("multiple_app"))
+    let app = App::new("multiple_app")
         .author(env!("CARGO_PKG_AUTHORS"))
         .description(env!("CARGO_PKG_DESCRIPTION"))
         .usage("multiple_app [command] [arg]")

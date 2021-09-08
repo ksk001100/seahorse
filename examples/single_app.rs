@@ -1,9 +1,9 @@
-use seahorse::{color, App, Context, Flag, FlagType};
+use seahorse::{App, Context, Flag, FlagType};
 use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let name = color::magenta("single_app");
+    let name = "single_app";
 
     let app = App::new(name)
         .author(env!("CARGO_PKG_AUTHORS"))
