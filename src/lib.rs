@@ -1,6 +1,5 @@
 mod action;
 mod app;
-pub mod color;
 mod command;
 mod context;
 pub mod error;
