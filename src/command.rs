@@ -216,6 +216,10 @@ impl Help for Command {
 
         text
     }
+
+    fn help(&self) {
+        println!("{}", self.help_text());
+    }
 }
 
 #[cfg(test)]
