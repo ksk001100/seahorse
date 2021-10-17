@@ -19,6 +19,10 @@ pub struct App {
     pub action: Option<Action>,
     /// Application flags
     pub flags: Option<Vec<Flag>>,
+    /// Application uses custom help text
+    custom_help: bool,
+    /// Custom help text for the application
+    custom_help_text: String,
 }
 
 impl App {
