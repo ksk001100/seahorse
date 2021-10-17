@@ -417,6 +417,16 @@ mod tests {
     }
 
     #[test]
+    fn app_new_with_help_text_test() {
+        let app = App::with_custom_help("cli", "help text test")
+            .command(Command::new("fail_help").usage("fails and that is it"));
+        app.run(vec!["arg".to_string()]);
+
+        assert_eq!(app.name, "cli");
+        assert_eq!(app.help_text(), "help text test");
+    }
+
+    #[test]
     fn multiple_app_test() {
         let a: Action = |c: &Context| {
             assert_eq!(true, c.bool_flag("bool"));
