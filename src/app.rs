@@ -373,6 +373,10 @@ impl App {
 
 impl Help for App {
     fn help_text(&self) -> String {
+        if self.custom_help {
+            return self.custom_help_text.clone();
+        }
+
         let mut text = String::new();
 
         text += &format!("Name:\n\t{}\n\n", self.name);
@@ -398,11 +402,19 @@ impl Help for App {
 
         text
     }
+
+    fn help(&self) {
+        if self.custom_help {
+            println!("{}", self.custom_help_text);
+        } else {
+            println!("{}", self.help_text());
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{Action, App, Command, Context, Flag, FlagType};
+    use crate::{help::Help, Action, App, Command, Context, Flag, FlagType};
 
     #[test]
     fn app_new_only_test() {
