@@ -42,6 +42,40 @@ impl App {
         }
     }
 
+    /// Create a new instance of `App` from a supplied custom help string
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::App;
+    ///
+    /// let app = App::with_custom_help("cli", "custom help text");
+    /// ```
+    pub fn with_custom_help<T: Into<String>>(name: T, help_text: T) -> Self {
+        let mut app = Self::new(name);
+        app.custom_help = true;
+        app.custom_help_text = help_text.into();
+        app
+    }
+
+    /// Set app to use custom help text
+    ///
+    /// Using [`App::with_custom_help`] is instead recommended.
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::App;
+    ///
+    /// let app = App::new("cli")
+    ///     .custom_help("custom help text");
+    /// ```
+    pub fn custom_help(mut self, help_text: impl Into<String>) -> Self {
+        self.custom_help = true;
+        self.custom_help_text = help_text.into();
+        self
+    }
+
     /// Set author of the app
     ///
     /// Example
