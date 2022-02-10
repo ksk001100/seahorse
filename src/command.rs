@@ -184,6 +184,8 @@ impl Command {
                         " ".repeat(flag_name_max_len - flag_name_len),
                         usage
                     );
+                } else {
+                    text += "\n";
                 }
             }
 
