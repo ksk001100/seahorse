@@ -19,6 +19,10 @@ pub struct App {
     pub action: Option<Action>,
     /// Application flags
     pub flags: Option<Vec<Flag>>,
+    /// Application uses custom help text
+    custom_help: bool,
+    /// Custom help text for the application
+    custom_help_text: String,
 }
 
 impl App {
@@ -36,6 +40,40 @@ impl App {
             name: name.into(),
             ..Self::default()
         }
+    }
+
+    /// Create a new instance of `App` from a supplied custom help string
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::App;
+    ///
+    /// let app = App::with_custom_help("cli", "custom help text");
+    /// ```
+    pub fn with_custom_help<T: Into<String>>(name: T, help_text: T) -> Self {
+        let mut app = Self::new(name);
+        app.custom_help = true;
+        app.custom_help_text = help_text.into();
+        app
+    }
+
+    /// Set app to use custom help text
+    ///
+    /// Using [`App::with_custom_help`] is instead recommended.
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::App;
+    ///
+    /// let app = App::new("cli")
+    ///     .custom_help("custom help text");
+    /// ```
+    pub fn custom_help(mut self, help_text: impl Into<String>) -> Self {
+        self.custom_help = true;
+        self.custom_help_text = help_text.into();
+        self
     }
 
     /// Set author of the app
@@ -371,6 +409,10 @@ impl App {
 
 impl Help for App {
     fn help_text(&self) -> String {
+        if self.custom_help {
+            return self.custom_help_text.clone();
+        }
+
         let mut text = String::new();
 
         text += &format!("Name:\n\t{}\n\n", self.name);
@@ -396,11 +438,19 @@ impl Help for App {
 
         text
     }
+
+    fn help(&self) {
+        if self.custom_help {
+            println!("{}", self.custom_help_text);
+        } else {
+            println!("{}", self.help_text());
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{Action, App, Command, Context, Flag, FlagType};
+    use crate::{help::Help, Action, App, Command, Context, Flag, FlagType};
 
     #[test]
     fn app_new_only_test() {
@@ -412,6 +462,16 @@ mod tests {
         assert_eq!(app.author, None);
         assert_eq!(app.description, None);
         assert_eq!(app.version, None);
+    }
+
+    #[test]
+    fn app_new_with_help_text_test() {
+        let app = App::with_custom_help("cli", "help text test")
+            .command(Command::new("fail_help").usage("fails and that is it"));
+        app.run(vec!["arg".to_string()]);
+
+        assert_eq!(app.name, "cli");
+        assert_eq!(app.help_text(), "help text test");
     }
 
     #[test]
