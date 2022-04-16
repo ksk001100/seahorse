@@ -168,7 +168,8 @@ impl Command {
                 Some(command) => command.run(args_v.to_vec()),
                 None => match self.action {
                     Some(action) => {
-                        if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string()) {
+                        if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string())
+                        {
                             self.help();
                             return;
                         }
