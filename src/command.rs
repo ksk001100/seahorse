@@ -120,6 +120,50 @@ impl Command {
         self
     }
 
+    /// Set sub command of the command
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{App, Command};
+    ///
+    /// let sub_command = Command::new("world")
+    ///     .usage("cli hello world")
+    ///     .action(|_| println!("Hello world!"));
+    ///
+    /// let command = Command::new("hello")
+    ///     .usage("cli hello [arg]")
+    ///     .action(|c| println!("{:?}", c.args))
+    ///     .command(sub_command);
+    ///
+    /// let app = App::new("cli")
+    ///     .command(command);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// You cannot set a command named as same as registered ones.
+    ///
+    /// ```should_panic
+    /// use seahorse::{App, Command};
+    ///
+    /// let sub_command1 = Command::new("world")
+    ///     .usage("cli hello world")
+    ///     .action(|_| println!("Hello world!"));
+    ///
+    /// let sub_command2 = Command::new("world")
+    ///     .usage("cli hello world")
+    ///     .action(|_| println!("Hello world!"));
+    ///
+    /// let command = Command::new("hello")
+    ///     .usage("cli hello [arg]")
+    ///     .action(|c| println!("{:?}", c.args))
+    ///     .command(sub_command1)
+    ///     .command(sub_command2);
+    ///
+    /// let app = App::new("cli")
+    ///     .command(command);
+    /// ```
     pub fn command(mut self, command: Command) -> Self {
         if let Some(ref mut commands) = self.commands {
             if commands
