@@ -210,7 +210,7 @@ impl App {
             }
         };
 
-        match self.select_command(&cmd) {
+        match self.select_command(cmd) {
             Some(command) => command.run(args_v.to_vec()),
             None => match self.action {
                 Some(action) => {
@@ -299,7 +299,7 @@ impl App {
                 .max()
                 .unwrap();
 
-            for flag_help in flag_helps.clone().into_iter() {
+            for flag_help in flag_helps.clone() {
                 text += &format!("\t{}", flag_help.0);
 
                 if let Some(usage) = &flag_help.1 {
