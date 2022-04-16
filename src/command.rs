@@ -15,6 +15,7 @@ pub struct Command {
     pub flags: Option<Vec<Flag>>,
     /// Command alias
     pub alias: Option<Vec<String>>,
+    pub commands: Option<Vec<Command>>,
 }
 
 impl Command {
@@ -119,16 +120,81 @@ impl Command {
         self
     }
 
+    pub fn command(mut self, command: Command) -> Self {
+        if let Some(ref mut commands) = self.commands {
+            if commands
+                .iter()
+                .any(|registered| registered.name == command.name)
+            {
+                panic!(r#"Command name "{}" is already registered."#, command.name);
+            }
+            (*commands).push(command);
+        } else {
+            self.commands = Some(vec![command]);
+        }
+        self
+    }
+
+    fn select_command(&self, cmd: &str) -> Option<&Command> {
+        match &self.commands {
+            Some(commands) => commands.iter().find(|command| match &command.alias {
+                Some(alias) => command.name == cmd || alias.iter().any(|a| a == cmd),
+                None => command.name == cmd,
+            }),
+            None => None,
+        }
+    }
+
+    fn normalized_args(raw_args: Vec<String>) -> Vec<String> {
+        raw_args.iter().fold(Vec::<String>::new(), |mut acc, cur| {
+            if cur.starts_with('-') && cur.contains('=') {
+                let mut splitted_flag: Vec<String> =
+                    cur.splitn(2, '=').map(|s| s.to_owned()).collect();
+                acc.append(&mut splitted_flag);
+            } else {
+                acc.push(cur.to_owned());
+            }
+            acc
+        })
+    }
+
     /// Run command
     /// Call this function only from `App`
     pub fn run(&self, args: Vec<String>) {
-        if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string()) {
-            self.help();
-            return;
-        }
-        match self.action {
-            Some(action) => action(&Context::new(args, self.flags.clone(), self.help_text())),
-            None => self.help(),
+        let args = Self::normalized_args(args);
+
+        match args.split_first() {
+            Some((cmd, args_v)) => match self.select_command(&cmd) {
+                Some(command) => command.run(args_v.to_vec()),
+                None => match self.action {
+                    Some(action) => {
+                        if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string()) {
+                            self.help();
+                            return;
+                        }
+                        action(&Context::new(
+                            args.to_vec(),
+                            self.flags.clone(),
+                            self.help_text(),
+                        ));
+                    }
+                    None => self.help(),
+                },
+            },
+            None => match self.action {
+                Some(action) => {
+                    if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string()) {
+                        self.help();
+                        return;
+                    }
+                    action(&Context::new(
+                        args.to_vec(),
+                        self.flags.clone(),
+                        self.help_text(),
+                    ));
+                }
+                None => self.help(),
+            },
         }
     }
 
@@ -200,6 +266,48 @@ impl Command {
 
         text
     }
+
+    fn command_help_text(&self) -> String {
+        let mut text = String::new();
+
+        if let Some(commands) = &self.commands {
+            text += "\nCommands:\n";
+
+            let name_max_len = &commands
+                .iter()
+                .map(|c| {
+                    if let Some(alias) = &c.alias {
+                        format!("{}, {}", alias.join(", "), c.name).len()
+                    } else {
+                        c.name.len()
+                    }
+                })
+                .max()
+                .unwrap();
+
+            for c in commands {
+                let command_name = if let Some(alias) = &c.alias {
+                    format!("{}, {}", alias.join(", "), c.name)
+                } else {
+                    c.name.clone()
+                };
+
+                let description = match &c.description {
+                    Some(description) => description,
+                    None => "",
+                };
+
+                text += &format!(
+                    "\t{} {}: {}\n",
+                    command_name,
+                    " ".repeat(name_max_len - command_name.len()),
+                    description
+                );
+            }
+        }
+
+        text
+    }
 }
 
 impl Help for Command {
@@ -215,6 +323,7 @@ impl Help for Command {
         }
 
         text += &self.flag_help_text();
+        text += &self.command_help_text();
 
         text
     }
@@ -233,6 +342,27 @@ mod tests {
             .alias("c")
             .action(a)
             .flag(Flag::new("t", FlagType::Bool));
+
+        assert_eq!(c.name, "hello".to_string());
+        assert_eq!(c.usage, Some("test hello user".to_string()));
+    }
+
+    #[test]
+    fn sub_command_test() {
+        let a: Action = |c: &Context| println!("Hello, {:?}", c.args);
+        let sub = Command::new("world")
+            .description("user command")
+            .usage("test hello world user")
+            .alias("w")
+            .action(a)
+            .flag(Flag::new("t", FlagType::Bool));
+        let c = Command::new("hello")
+            .description("user command")
+            .usage("test hello user")
+            .alias("h")
+            .action(a)
+            .flag(Flag::new("t", FlagType::Bool))
+            .command(sub);
 
         assert_eq!(c.name, "hello".to_string());
         assert_eq!(c.usage, Some("test hello user".to_string()));
