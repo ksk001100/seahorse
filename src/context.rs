@@ -133,6 +133,28 @@ impl Context {
         }
     }
 
+    /// Get Uint flag
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::Context;
+    ///
+    /// fn action(c: &Context) {
+    ///     match c.uint_flag("uint") {
+    ///         Ok(i) => println!("{}", i),
+    ///         Err(e) => println!("{}", e)
+    ///     }
+    /// }
+    /// ```
+    pub fn uint_flag(&self, name: &str) -> Result<usize, FlagError> {
+        let r = self.result_flag_value(name)?;
+        match r {
+            FlagValue::Uint(val) => Ok(val),
+            _ => Err(FlagError::TypeError),
+        }
+    }
+
     /// Get float flag
     ///
     /// Example
@@ -187,6 +209,8 @@ mod tests {
             "test".to_string(),
             "--int".to_string(),
             "100".to_string(),
+            "--uint".to_string(),
+            "1234567654321".to_string(),
             "--float".to_string(),
             "1.23".to_string(),
             "--invalid_float".to_string(),
@@ -196,6 +220,7 @@ mod tests {
             Flag::new("bool", FlagType::Bool),
             Flag::new("string", FlagType::String),
             Flag::new("int", FlagType::Int),
+            Flag::new("uint", FlagType::Uint),
             Flag::new("float", FlagType::Float),
             Flag::new("invalid_float", FlagType::Float),
             Flag::new("not_specified", FlagType::String),
@@ -205,10 +230,13 @@ mod tests {
         assert_eq!(context.bool_flag("bool"), true);
         assert_eq!(context.string_flag("string"), Ok("test".to_string()));
         assert_eq!(context.int_flag("int"), Ok(100));
+        assert_eq!(context.uint_flag("uint"), Ok(1234567654321));
         assert_eq!(context.float_flag("float"), Ok(1.23));
 
         // string value arg, string flag, used as int
         assert_eq!(context.int_flag("string"), Err(FlagError::TypeError));
+        // string value arg, string flag, used as uint
+        assert_eq!(context.uint_flag("string"), Err(FlagError::TypeError));
         // string value arg, float flag, used as float
         assert_eq!(
             context.float_flag("invalid_float"),

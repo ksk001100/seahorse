@@ -21,6 +21,7 @@ pub enum FlagType {
     Bool,
     String,
     Int,
+    Uint,
     Float,
 }
 
@@ -30,6 +31,7 @@ pub enum FlagValue {
     Bool(bool),
     String(String),
     Int(isize),
+    Uint(usize),
     Float(f64),
 }
 
@@ -136,6 +138,13 @@ impl Flag {
                 },
                 None => Err(FlagError::ArgumentError),
             },
+            FlagType::Uint => match v {
+                Some(i) => match i.parse::<usize>() {
+                    Ok(i) => Ok(FlagValue::Uint(i)),
+                    Err(_) => Err(FlagError::ValueTypeError),
+                },
+                None => Err(FlagError::ArgumentError),
+            },
             FlagType::Float => match v {
                 Some(f) => match f.parse::<f64>() {
                     Ok(f) => Ok(FlagValue::Float(f)),
@@ -238,6 +247,23 @@ mod tests {
 
         match int_flag.value(Some(v[4].to_owned())) {
             Ok(FlagValue::Int(val)) => assert_eq!(100, val),
+            _ => assert!(false),
+        }
+    }
+
+    #[test]
+    fn uint_flag_test() {
+        let uint_flag = Flag::new("uint", FlagType::Uint);
+        let v = vec![
+            "cli".to_string(),
+            "command".to_string(),
+            "args".to_string(),
+            "--uint".to_string(),
+            "1234567891011".to_string(),
+        ];
+
+        match uint_flag.value(Some(v[4].to_owned())) {
+            Ok(FlagValue::Uint(val)) => assert_eq!(1234567891011, val),
             _ => assert!(false),
         }
     }
