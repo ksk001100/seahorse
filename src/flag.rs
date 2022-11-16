@@ -31,7 +31,7 @@ pub enum FlagValue {
     Bool(bool),
     String(String),
     Int(isize),
-    Uint(u64),
+    Uint(usize),
     Float(f64),
 }
 
@@ -139,7 +139,7 @@ impl Flag {
                 None => Err(FlagError::ArgumentError),
             },
             FlagType::Uint => match v {
-                Some(i) => match i.parse::<u64>() {
+                Some(i) => match i.parse::<usize>() {
                     Ok(i) => Ok(FlagValue::Uint(i)),
                     Err(_) => Err(FlagError::ValueTypeError),
                 },

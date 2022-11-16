@@ -147,7 +147,7 @@ impl Context {
     ///     }
     /// }
     /// ```
-    pub fn uint_flag(&self, name: &str) -> Result<u64, FlagError> {
+    pub fn uint_flag(&self, name: &str) -> Result<usize, FlagError> {
         let r = self.result_flag_value(name)?;
         match r {
             FlagValue::Uint(val) => Ok(val),
