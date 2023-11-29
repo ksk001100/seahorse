@@ -217,11 +217,14 @@ impl Command {
                             self.help();
                             return;
                         }
-                        action(&Context::new(
+                        match action(&Context::new(
                             args.to_vec(),
                             self.flags.clone(),
                             self.help_text(),
-                        ));
+                        )) {
+                            Ok(_) => println!("ok"),
+                            Err(e) => println!("err {}", e),
+                        }
                     }
                     None => self.help(),
                 },
@@ -232,11 +235,14 @@ impl Command {
                         self.help();
                         return;
                     }
-                    action(&Context::new(
+                    match action(&Context::new(
                         args.to_vec(),
                         self.flags.clone(),
                         self.help_text(),
-                    ));
+                    )) {
+                        Ok(_) => println!("ok"),
+                        Err(e) => println!("err {}", e),
+                    }
                 }
                 None => self.help(),
             },

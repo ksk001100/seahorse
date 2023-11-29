@@ -11,4 +11,4 @@ use crate::Context;
 ///     println!("{:?}", c.args);
 /// };
 /// ```
-pub type Action = fn(&Context);
+pub type Action = fn(&Context) -> std::fmt::Result;

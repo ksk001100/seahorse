@@ -218,11 +218,14 @@ impl App {
                         self.help();
                         return;
                     }
-                    action(&Context::new(
+                    match action(&Context::new(
                         args[1..].to_vec(),
                         self.flags.clone(),
                         self.help_text(),
-                    ));
+                    )) {
+                        Ok(_) => println!("ok"),
+                        Err(e) => println!("err {}", e),
+                    }
                 }
                 None => self.help(),
             },
