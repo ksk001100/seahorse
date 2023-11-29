@@ -11,7 +11,9 @@ use crate::Context;
 ///     println!("{:?}", c.args);
 /// };
 /// ```
-pub type Action = fn(&Context) -> Result<(), CommandError>;
+pub type Action = fn(&Context);
+
+pub type ActionWithResult = fn(&Context) -> Result<(), CommandError>;
 
 #[derive(Debug)]
 pub struct CommandError {

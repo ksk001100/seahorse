@@ -7,6 +7,7 @@ mod flag;
 mod help;
 
 pub use action::Action;
+pub use action::ActionWithResult;
 pub use action::CommandError;
 pub use app::App;
 pub use command::Command;

@@ -1,5 +1,5 @@
 use crate::action::fail;
-use crate::{Action, Command, Context, Flag, FlagType, Help};
+use crate::{Action, ActionWithResult, Command, Context, Flag, FlagType, Help};
 
 /// Multiple action application entry point
 #[derive(Default)]
@@ -18,6 +18,8 @@ pub struct App {
     pub commands: Option<Vec<Command>>,
     /// Application action
     pub action: Option<Action>,
+    /// Alternate application action that returns a Result
+    pub action_with_result: Option<ActionWithResult>,
     /// Application flags
     pub flags: Option<Vec<Flag>>,
 }
@@ -164,6 +166,22 @@ impl App {
         self
     }
 
+    /// Set action of the app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{ActionWithResult, App, Context};
+    ///
+    /// let action: ActionWithResult = |c: &Context| println!("{:?}", c.args);
+    /// let app = App::new("cli")
+    ///     .action(action);
+    /// ```
+    pub fn action_with_result(mut self, action_with_result: ActionWithResult) -> Self {
+        self.action_with_result = Some(action_with_result);
+        self
+    }
+
     /// Set flag of the app
     ///
     /// Example
@@ -213,13 +231,13 @@ impl App {
 
         match self.select_command(cmd) {
             Some(command) => command.run(args_v.to_vec()),
-            None => match self.action {
-                Some(action) => {
+            None => match self.action_with_result {
+                Some(action_with_result) => {
                     if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string()) {
                         self.help();
                         return;
                     }
-                    match action(&Context::new(
+                    match action_with_result(&Context::new(
                         args[1..].to_vec(),
                         self.flags.clone(),
                         self.help_text(),

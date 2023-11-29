@@ -1,5 +1,5 @@
 use crate::action::fail;
-use crate::{Action, Context, Flag, FlagType, Help};
+use crate::{Action, Context, Flag, FlagType, Help, ActionWithResult};
 
 /// Application command type
 #[derive(Default)]
@@ -12,6 +12,8 @@ pub struct Command {
     pub usage: Option<String>,
     /// Command action
     pub action: Option<Action>,
+    /// Alternate command action that returns a Result
+    pub action_with_result: Option<ActionWithResult>,
     /// Action flags
     pub flags: Option<Vec<Flag>>,
     /// Command alias
@@ -79,6 +81,22 @@ impl Command {
     /// ```
     pub fn action(mut self, action: Action) -> Self {
         self.action = Some(action);
+        self
+    }
+
+    /// Set action of the command
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{Command, Context, Action};
+    ///
+    /// let action: ActionWithResult = |c: &Context| println!("{:?}", c.args);
+    /// let command = Command::new("cmd")
+    ///     .action_with_result(action);
+    /// ```
+    pub fn action_with_result(mut self, action_with_result: ActionWithResult) -> Self {
+        self.action_with_result = Some(action_with_result);
         self
     }
 
@@ -211,14 +229,14 @@ impl Command {
         match args.split_first() {
             Some((cmd, args_v)) => match self.select_command(cmd) {
                 Some(command) => command.run(args_v.to_vec()),
-                None => match self.action {
-                    Some(action) => {
+                None => match self.action_with_result {
+                    Some(action_with_result) => {
                         if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string())
                         {
                             self.help();
                             return;
                         }
-                        match action(&Context::new(
+                        match action_with_result(&Context::new(
                             args.to_vec(),
                             self.flags.clone(),
                             self.help_text(),
@@ -230,13 +248,13 @@ impl Command {
                     None => self.help(),
                 },
             },
-            None => match self.action {
-                Some(action) => {
+            None => match self.action_with_result {
+                Some(action_with_result) => {
                     if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string()) {
                         self.help();
                         return;
                     }
-                    match action(&Context::new(
+                    match action_with_result(&Context::new(
                         args.to_vec(),
                         self.flags.clone(),
                         self.help_text(),
