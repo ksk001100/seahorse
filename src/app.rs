@@ -173,9 +173,9 @@ impl App {
     /// ```
     /// use seahorse::{ActionWithResult, App, Context};
     ///
-    /// let action: ActionWithResult = |c: &Context| println!("{:?}", c.args);
+    /// let action_with_result: ActionWithResult = |c: &Context| {println!("{:?}", c.args); Ok(())}
     /// let app = App::new("cli")
-    ///     .action(action);
+    ///     .action_with_result(action_with_result);
     /// ```
     pub fn action_with_result(mut self, action_with_result: ActionWithResult) -> Self {
         self.action_with_result = Some(action_with_result);

@@ -89,11 +89,11 @@ impl Command {
     /// Example
     ///
     /// ```
-    /// use seahorse::{Command, Context, Action};
+    /// use seahorse::{ActionWithResult, Command, Context};
     ///
-    /// let action: ActionWithResult = |c: &Context| println!("{:?}", c.args);
+    /// let action_with_result: ActionWithResult = |c: &Context| {println!("{:?}", c.args); Ok(())}
     /// let command = Command::new("cmd")
-    ///     .action_with_result(action);
+    ///     .action_with_result(action_with_result);
     /// ```
     pub fn action_with_result(mut self, action_with_result: ActionWithResult) -> Self {
         self.action_with_result = Some(action_with_result);
