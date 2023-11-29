@@ -224,7 +224,7 @@ impl App {
                         self.help_text(),
                     )) {
                         Ok(_) => println!("ok"),
-                        Err(e) => println!("err {}", e),
+                        Err(e) => println!("err {}", e.message),
                     }
                 }
                 None => self.help(),

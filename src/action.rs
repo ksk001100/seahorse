@@ -11,4 +11,9 @@ use crate::Context;
 ///     println!("{:?}", c.args);
 /// };
 /// ```
-pub type Action = fn(&Context) -> std::fmt::Result;
+pub type Action = fn(&Context) -> Result<(), CommandError>;
+
+#[derive(Debug)]
+pub struct CommandError {
+    pub message: String,
+}
