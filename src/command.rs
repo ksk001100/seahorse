@@ -242,7 +242,7 @@ impl Command {
                             self.help_text(),
                         )) {
                             Ok(_) => (),
-                            Err(e) => eprintln!("Error {}", e.message),
+                            Err(e) => fail(e),
                         }
                     }
                     None => self.help(),

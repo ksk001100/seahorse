@@ -13,14 +13,16 @@ use crate::Context;
 /// ```
 pub type Action = fn(&Context);
 
-pub type ActionWithResult = fn(&Context) -> Result<(), CommandError>;
+pub type ActionWithResult = fn(&Context) -> ActionResult;
+
+pub type ActionResult = Result<(), ActionError>;
 
 #[derive(Debug)]
-pub struct CommandError {
+pub struct ActionError {
     pub message: String,
 }
 
-pub fn fail(e: CommandError) {
+pub fn fail(e: ActionError) {
     eprintln!("Error: {}", e.message);
     std::process::exit(-1);
 }

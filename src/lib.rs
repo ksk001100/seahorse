@@ -6,9 +6,7 @@ pub mod error;
 mod flag;
 mod help;
 
-pub use action::Action;
-pub use action::ActionWithResult;
-pub use action::CommandError;
+pub use action::{Action, ActionWithResult, ActionResult, ActionError};
 pub use app::App;
 pub use command::Command;
 pub use context::Context;
