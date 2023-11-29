@@ -1,3 +1,4 @@
+use crate::action::fail;
 use crate::{Action, Context, Flag, FlagType, Help};
 
 /// Application command type
@@ -222,8 +223,8 @@ impl Command {
                             self.flags.clone(),
                             self.help_text(),
                         )) {
-                            Ok(_) => println!("ok"),
-                            Err(e) => println!("err {}", e.message),
+                            Ok(_) => (),
+                            Err(e) => eprintln!("Error {}", e.message),
                         }
                     }
                     None => self.help(),
@@ -240,8 +241,8 @@ impl Command {
                         self.flags.clone(),
                         self.help_text(),
                     )) {
-                        Ok(_) => println!("ok"),
-                        Err(e) => println!("err {}", e.message),
+                        Ok(_) => (),
+                        Err(e) => fail(e),
                     }
                 }
                 None => self.help(),

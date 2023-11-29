@@ -1,3 +1,4 @@
+use crate::action::fail;
 use crate::{Action, Command, Context, Flag, FlagType, Help};
 
 /// Multiple action application entry point
@@ -223,8 +224,8 @@ impl App {
                         self.flags.clone(),
                         self.help_text(),
                     )) {
-                        Ok(_) => println!("ok"),
-                        Err(e) => println!("err {}", e.message),
+                        Ok(_) => (),
+                        Err(e) => fail(e),
                     }
                 }
                 None => self.help(),

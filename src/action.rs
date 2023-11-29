@@ -17,3 +17,8 @@ pub type Action = fn(&Context) -> Result<(), CommandError>;
 pub struct CommandError {
     pub message: String,
 }
+
+pub fn fail(e: CommandError) {
+    eprintln!("Error: {}", e.message);
+    std::process::exit(-1);
+}
