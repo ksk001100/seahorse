@@ -173,7 +173,7 @@ impl App {
     /// ```
     /// use seahorse::{ActionWithResult, App, Context};
     ///
-    /// let action_with_result: ActionWithResult = |c: &Context| {println!("{:?}", c.args); Ok(())}
+    /// let action_with_result: ActionWithResult = |c: &Context| {println!("{:?}", c.args); Ok(())};
     /// let app = App::new("cli")
     ///     .action_with_result(action_with_result);
     /// ```
@@ -246,7 +246,21 @@ impl App {
                         Err(e) => fail(e),
                     }
                 }
-                None => self.help(),
+                None => match self.action {
+                    Some(action) => {
+                        if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string())
+                        {
+                            self.help();
+                            return;
+                        }
+                        action(&Context::new(
+                            args[1..].to_vec(),
+                            self.flags.clone(),
+                            self.help_text(),
+                        ));
+                    }
+                    None => self.help(),
+                },
             },
         }
     }
