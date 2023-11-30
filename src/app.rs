@@ -161,6 +161,20 @@ impl App {
     /// let app = App::new("cli")
     ///     .action(action);
     /// ```
+    ///     
+    /// # Panics
+    ///
+    /// You cannot set both action and action_with_result.
+    ///
+    /// ```should_panic
+    /// use seahorse::{Action, ActionWithResult, App, Context};
+    ///
+    /// let action_with_result: ActionWithResult = |c: &Context| {println!("{:?}", c.args); Ok(())};
+    /// let action: Action = |c: &Context| println!("{:?}", c.args);
+    /// let app = App::new("cli")
+    ///     .action_with_result(action_with_result)
+    ///     .action(action);
+    /// ```
     pub fn action(mut self, action: Action) -> Self {
         if self.action_with_result.is_some() {
             panic!(r#"only one of action and action_with_result can be set."#);
@@ -178,6 +192,20 @@ impl App {
     ///
     /// let action_with_result: ActionWithResult = |c: &Context| {println!("{:?}", c.args); Ok(())};
     /// let app = App::new("cli")
+    ///     .action_with_result(action_with_result);
+    /// ```
+    /// 
+    /// # Panics
+    ///
+    /// You cannot set both action and action_with_result.
+    ///
+    /// ```should_panic
+    /// use seahorse::{Action, ActionWithResult, App, Context};
+    ///
+    /// let action_with_result: ActionWithResult = |c: &Context| {println!("{:?}", c.args); Ok(())};
+    /// let action: Action = |c: &Context| println!("{:?}", c.args);
+    /// let app = App::new("cli")
+    ///     .action(action)
     ///     .action_with_result(action_with_result);
     /// ```
     pub fn action_with_result(mut self, action_with_result: ActionWithResult) -> Self {

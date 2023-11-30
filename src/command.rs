@@ -79,6 +79,20 @@ impl Command {
     /// let command = Command::new("cmd")
     ///     .action(action);
     /// ```
+    /// 
+    /// # Panics
+    ///
+    /// You cannot set both action and action_with_result.
+    ///
+    /// ```should_panic
+    /// use seahorse::{Action, ActionWithResult, Command, Context};
+    ///
+    /// let action_with_result: ActionWithResult = |c: &Context| {println!("{:?}", c.args); Ok(())};
+    /// let action: Action = |c: &Context| println!("{:?}", c.args);
+    /// let command = Command::new("cmd")
+    ///     .action_with_result(action_with_result)
+    ///     .action(action);
+    /// ```
     pub fn action(mut self, action: Action) -> Self {
         if self.action_with_result.is_some() {
             panic!(r#"only one of action and action_with_result can be set."#);
@@ -96,6 +110,20 @@ impl Command {
     ///
     /// let action_with_result: ActionWithResult = |c: &Context| {println!("{:?}", c.args); Ok(())};
     /// let command = Command::new("cmd")
+    ///     .action_with_result(action_with_result);
+    /// ```
+    /// 
+    /// # Panics
+    ///
+    /// You cannot set both action and action_with_result.
+    ///
+    /// ```should_panic
+    /// use seahorse::{Action, ActionWithResult, Command, Context};
+    ///
+    /// let action_with_result: ActionWithResult = |c: &Context| {println!("{:?}", c.args); Ok(())};
+    /// let action: Action = |c: &Context| println!("{:?}", c.args);
+    /// let command = Command::new("cmd")
+    ///     .action(action)
     ///     .action_with_result(action_with_result);
     /// ```
     pub fn action_with_result(mut self, action_with_result: ActionWithResult) -> Self {
