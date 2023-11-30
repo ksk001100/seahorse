@@ -231,33 +231,33 @@ impl App {
 
         match self.select_command(cmd) {
             Some(command) => command.run(args_v.to_vec()),
-            None => match self.action_with_result {
-                Some(action_with_result) => {
+            None => match self.action {
+                Some(action) => {
                     if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string()) {
                         self.help();
                         return;
                     }
-                    match action_with_result(&Context::new(
+                    action(&Context::new(
                         args[1..].to_vec(),
                         self.flags.clone(),
                         self.help_text(),
-                    )) {
-                        Ok(_) => (),
-                        Err(e) => fail(e),
-                    }
+                    ));
                 }
-                None => match self.action {
-                    Some(action) => {
+                None => match self.action_with_result {
+                    Some(action_with_result) => {
                         if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string())
                         {
                             self.help();
                             return;
                         }
-                        action(&Context::new(
+                        match action_with_result(&Context::new(
                             args[1..].to_vec(),
                             self.flags.clone(),
                             self.help_text(),
-                        ));
+                        )) {
+                            Ok(_) => (),
+                            Err(e) => fail(e),
+                        }
                     }
                     None => self.help(),
                 },

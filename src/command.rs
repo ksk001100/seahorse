@@ -1,5 +1,5 @@
 use crate::action::fail;
-use crate::{Action, Context, Flag, FlagType, Help, ActionWithResult};
+use crate::{Action, ActionWithResult, Context, Flag, FlagType, Help};
 
 /// Application command type
 #[derive(Default)]
@@ -229,6 +229,52 @@ impl Command {
         match args.split_first() {
             Some((cmd, args_v)) => match self.select_command(cmd) {
                 Some(command) => command.run(args_v.to_vec()),
+                None => match self.action {
+                    Some(action) => {
+                        if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string())
+                        {
+                            self.help();
+                            return;
+                        }
+                        action(&Context::new(
+                            args.to_vec(),
+                            self.flags.clone(),
+                            self.help_text(),
+                        ));
+                    }
+                    None => match self.action_with_result {
+                        Some(action_with_result) => {
+                            if args.contains(&"-h".to_string())
+                                || args.contains(&"--help".to_string())
+                            {
+                                self.help();
+                                return;
+                            }
+                            match action_with_result(&Context::new(
+                                args.to_vec(),
+                                self.flags.clone(),
+                                self.help_text(),
+                            )) {
+                                Ok(_) => (),
+                                Err(e) => fail(e),
+                            }
+                        }
+                        None => self.help(),
+                    },
+                },
+            },
+            None => match self.action {
+                Some(action) => {
+                    if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string()) {
+                        self.help();
+                        return;
+                    }
+                    action(&Context::new(
+                        args.to_vec(),
+                        self.flags.clone(),
+                        self.help_text(),
+                    ));
+                }
                 None => match self.action_with_result {
                     Some(action_with_result) => {
                         if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string())
@@ -244,50 +290,6 @@ impl Command {
                             Ok(_) => (),
                             Err(e) => fail(e),
                         }
-                    }
-                    None => match self.action {
-                        Some(action) => {
-                            if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string())
-                            {
-                                self.help();
-                                return;
-                            }
-                            action(&Context::new(
-                                args.to_vec(),
-                                self.flags.clone(),
-                                self.help_text(),
-                            ));
-                        }
-                        None => self.help(),
-                    },
-                },
-            },
-            None => match self.action_with_result {
-                Some(action_with_result) => {
-                    if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string()) {
-                        self.help();
-                        return;
-                    }
-                    match action_with_result(&Context::new(
-                        args.to_vec(),
-                        self.flags.clone(),
-                        self.help_text(),
-                    )) {
-                        Ok(_) => (),
-                        Err(e) => fail(e),
-                    }
-                }
-                None => match self.action {
-                    Some(action) => {
-                        if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string()) {
-                            self.help();
-                            return;
-                        }
-                        action(&Context::new(
-                            args.to_vec(),
-                            self.flags.clone(),
-                            self.help_text(),
-                        ));
                     }
                     None => self.help(),
                 },
