@@ -80,9 +80,8 @@ impl Command {
     ///     .action(action);
     /// ```
     pub fn action(mut self, action: Action) -> Self {
-        match self.action_with_result {
-            Some(_) => panic!(r#"only one of action and action_with_result can be set."#),
-            None => (),
+        if self.action_with_result.is_some() {
+            panic!(r#"only one of action and action_with_result can be set."#);
         }
         self.action = Some(action);
         self
@@ -100,9 +99,8 @@ impl Command {
     ///     .action_with_result(action_with_result);
     /// ```
     pub fn action_with_result(mut self, action_with_result: ActionWithResult) -> Self {
-        match self.action {
-            Some(_) => panic!(r#"only one of action and action_with_result can be set."#),
-            None => (),
+        if self.action.is_some() {
+            panic!(r#"only one of action and action_with_result can be set."#);
         }
         self.action_with_result = Some(action_with_result);
         self
