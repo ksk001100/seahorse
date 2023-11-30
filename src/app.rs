@@ -162,6 +162,10 @@ impl App {
     ///     .action(action);
     /// ```
     pub fn action(mut self, action: Action) -> Self {
+        match self.action_with_result {
+            Some(_) => panic!(r#"only one of action and action_with_result can be set."#),
+            None => (),
+        }
         self.action = Some(action);
         self
     }
@@ -178,6 +182,10 @@ impl App {
     ///     .action_with_result(action_with_result);
     /// ```
     pub fn action_with_result(mut self, action_with_result: ActionWithResult) -> Self {
+        match self.action {
+            Some(_) => panic!(r#"only one of action and action_with_result can be set."#),
+            None => (),
+        }
         self.action_with_result = Some(action_with_result);
         self
     }
