@@ -21,8 +21,3 @@ pub type ActionResult = Result<(), ActionError>;
 pub struct ActionError {
     pub message: String,
 }
-
-pub fn fail(e: ActionError) {
-    eprintln!("Error: {}", e.message);
-    std::process::exit(-1);
-}

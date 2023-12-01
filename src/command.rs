@@ -1,4 +1,3 @@
-use crate::action::fail;
 use crate::{Action, ActionWithResult, Context, Flag, FlagType, Help};
 
 /// Application command type
@@ -79,7 +78,7 @@ impl Command {
     /// let command = Command::new("cmd")
     ///     .action(action);
     /// ```
-    /// 
+    ///
     /// # Panics
     ///
     /// You cannot set both action and action_with_result.
@@ -112,7 +111,7 @@ impl Command {
     /// let command = Command::new("cmd")
     ///     .action_with_result(action_with_result);
     /// ```
-    /// 
+    ///
     /// # Panics
     ///
     /// You cannot set both action and action_with_result.
@@ -290,7 +289,7 @@ impl Command {
                                 self.help_text(),
                             )) {
                                 Ok(_) => (),
-                                Err(e) => fail(e),
+                                Err(e) => panic!("{}", e.message),
                             }
                         }
                         None => self.help(),
@@ -322,7 +321,7 @@ impl Command {
                             self.help_text(),
                         )) {
                             Ok(_) => (),
-                            Err(e) => fail(e),
+                            Err(e) => panic!("{}", e.message),
                         }
                     }
                     None => self.help(),
