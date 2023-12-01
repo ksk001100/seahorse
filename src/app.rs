@@ -716,9 +716,9 @@ mod tests {
         let a: ActionWithResult = |_: &Context| {
             return Ok(());
         };
-        let command = Command::new("one").action_with_result(a);
+        let command = Command::new("hello").action_with_result(a);
         let app = App::new("test").command(command);
-        app.run(vec!["test".to_string(), "one".to_string()]);
+        app.run(vec!["test".to_string(), "hello".to_string()]);
     }
 
     #[test]
@@ -729,8 +729,8 @@ mod tests {
                 message: "we expect this to fail".to_string(),
             });
         };
-        let command = Command::new("one").action_with_result(a);
+        let command = Command::new("hello").action_with_result(a);
         let app = App::new("test").command(command);
-        app.run(vec!["test".to_string(), "one".to_string()]);
+        app.run(vec!["test".to_string(), "hello".to_string()]);
     }
 }
