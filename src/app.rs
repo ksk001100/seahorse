@@ -1,6 +1,4 @@
-use crate::{
-    Action, ActionError, ActionResult, ActionWithResult, Command, Context, Flag, FlagType, Help,
-};
+use crate::{Action, ActionWithResult, Command, Context, Error, Flag, FlagType, Help, Result};
 
 /// Multiple action application entry point
 #[derive(Default)]
@@ -268,7 +266,7 @@ impl App {
     /// let app = App::new("cli");
     /// let result = app.run_with_result(args);
     /// ```
-    pub fn run_with_result(&self, args: Vec<String>) -> ActionResult {
+    pub fn run_with_result(&self, args: Vec<String>) -> Result {
         let args = Self::normalized_args(args);
         let (cmd_v, args_v) = match args.len() {
             1 => args.split_at(1),
@@ -279,7 +277,7 @@ impl App {
             Some(c) => c,
             None => {
                 self.help();
-                return Err(ActionError {
+                return Err(Error {
                     message: "unsupported command".to_string(),
                 });
             }
@@ -493,7 +491,7 @@ impl Help for App {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Action, ActionError, ActionWithResult, App, Command, Context, Flag, FlagType};
+    use crate::{Action, ActionWithResult, App, Command, Context, Error, Flag, FlagType};
 
     #[test]
     fn app_new_only_test() {
@@ -727,7 +725,7 @@ mod tests {
     #[should_panic]
     fn app_with_error_result_test() {
         let a: ActionWithResult = |_: &Context| {
-            return Err(ActionError {
+            return Err(Error {
                 message: "we expect this to fail".to_string(),
             });
         };
@@ -748,7 +746,7 @@ mod tests {
     #[test]
     fn app_with_error_result_value_test() {
         let a: ActionWithResult = |_: &Context| {
-            return Err(ActionError {
+            return Err(Error {
                 message: "we expect this to fail".to_string(),
             });
         };
@@ -771,7 +769,7 @@ mod tests {
     #[should_panic]
     fn command_with_error_result_test() {
         let a: ActionWithResult = |_: &Context| {
-            return Err(ActionError {
+            return Err(Error {
                 message: "we expect this to fail".to_string(),
             });
         };
@@ -794,7 +792,7 @@ mod tests {
     #[test]
     fn command_with_error_result_value_test() {
         let a: ActionWithResult = |_: &Context| {
-            return Err(ActionError {
+            return Err(Error {
                 message: "we expect this to fail".to_string(),
             });
         };

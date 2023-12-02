@@ -1,4 +1,4 @@
-use crate::{Action, ActionResult, ActionWithResult, Context, Flag, FlagType, Help};
+use crate::{Action, ActionWithResult, Context, Flag, FlagType, Help, Result};
 
 /// Application command type
 #[derive(Default)]
@@ -256,7 +256,7 @@ impl Command {
 
     /// Run command
     /// Call this function only from `App`
-    pub fn run_with_result(&self, args: Vec<String>) -> ActionResult {
+    pub fn run_with_result(&self, args: Vec<String>) -> Result {
         let args = Self::normalized_args(args);
 
         match args.split_first() {

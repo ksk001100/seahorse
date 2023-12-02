@@ -13,11 +13,11 @@ use crate::Context;
 /// ```
 pub type Action = fn(&Context);
 
-pub type ActionWithResult = fn(&Context) -> ActionResult;
+pub type ActionWithResult = fn(&Context) -> Result;
 
-pub type ActionResult = Result<(), ActionError>;
+pub type Result = std::result::Result<(), Error>;
 
 #[derive(Debug)]
-pub struct ActionError {
+pub struct Error {
     pub message: String,
 }

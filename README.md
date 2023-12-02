@@ -239,7 +239,7 @@ $ cli calc -op sub 10 6 3 2
 ### Top level error handling
 
 ```rust
-use seahorse::{ActionError, App, Context, Flag, FlagType};
+use seahorse::{App, Context, Error, Flag, FlagType};
 use std::env;
 
 fn main() {
@@ -251,7 +251,7 @@ fn main() {
         .version(env!("CARGO_PKG_VERSION"))
         .action_with_result(|c: &Context| {
             if c.bool_flag("error") {
-                Err(ActionError {
+                Err(Error {
                     message: "ERROR...".to_string(),
                 })
             } else {
@@ -267,7 +267,7 @@ fn main() {
     match app.run_with_result(args) {
         Ok(_) => println!("OK"),
         Err(e) => match e {
-            ActionError { message } => println!("{}", message),
+            Error { message } => println!("{}", message),
         },
     };
 }
