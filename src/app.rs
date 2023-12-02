@@ -494,6 +494,7 @@ impl Help for App {
 
 #[cfg(test)]
 mod tests {
+    use std::fmt;
     use crate::{Action, ActionWithResult, App, Command, Context, Flag, FlagType};
 
     #[test]
@@ -728,7 +729,7 @@ mod tests {
     #[should_panic]
     fn app_with_error_result_test() {
         let a: ActionWithResult = |_: &Context| {
-            return Err(Box::new(std::io::Error::other("test")));
+            return Err(Box::new(Error));
         };
         let app = App::new("test").action_with_result(a);
         app.run(vec!["test".to_string()]);
@@ -747,7 +748,7 @@ mod tests {
     #[test]
     fn app_with_error_result_value_test() {
         let a: ActionWithResult = |_: &Context| {
-            return Err(Box::new(std::io::Error::other("test")));
+            return Err(Box::new(Error));
         };
         let app = App::new("test").action_with_result(a);
         let result = app.run_with_result(vec!["test".to_string()]);
@@ -768,7 +769,7 @@ mod tests {
     #[should_panic]
     fn command_with_error_result_test() {
         let a: ActionWithResult = |_: &Context| {
-            return Err(Box::new(std::io::Error::other("test")));
+            return Err(Box::new(Error));
         };
         let command = Command::new("hello").action_with_result(a);
         let app = App::new("test").command(command);
@@ -789,11 +790,27 @@ mod tests {
     #[test]
     fn command_with_error_result_value_test() {
         let a: ActionWithResult = |_: &Context| {
-            return Err(Box::new(std::io::Error::other("test")));
+            return Err(Box::new(Error));
         };
         let command = Command::new("hello").action_with_result(a);
         let app = App::new("test").command(command);
         let result = app.run_with_result(vec!["test".to_string(), "hello".to_string()]);
         assert!(result.is_err());
     }
+
+    #[derive(Debug, Clone)]
+    struct Error;
+
+    // Generation of an error is completely separate from how it is displayed.
+    // There's no need to be concerned about cluttering complex logic with the display style.
+    //
+    // Note that we don't store any extra info about the errors. This means we can't state
+    // which string failed to parse without modifying our types to carry that information.
+    impl fmt::Display for Error {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            write!(f, "test error")
+        }
+    }
+
+    impl std::error::Error for Error {}
 }
