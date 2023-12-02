@@ -736,6 +736,28 @@ mod tests {
     }
 
     #[test]
+    fn app_with_ok_result_value_test() {
+        let a: ActionWithResult = |_: &Context| {
+            return Ok(());
+        };
+        let app = App::new("test").action_with_result(a);
+        let result = app.run_with_result(vec!["test".to_string()]);
+        assert!(!result.is_err());
+    }
+
+    #[test]
+    fn app_with_error_result_value_test() {
+        let a: ActionWithResult = |_: &Context| {
+            return Err(ActionError {
+                message: "we expect this to fail".to_string(),
+            });
+        };
+        let app = App::new("test").action_with_result(a);
+        let result = app.run_with_result(vec!["test".to_string()]);
+        assert!(result.is_err());
+    }
+
+    #[test]
     fn command_with_ok_result_test() {
         let a: ActionWithResult = |_: &Context| {
             return Ok(());
@@ -756,5 +778,29 @@ mod tests {
         let command = Command::new("hello").action_with_result(a);
         let app = App::new("test").command(command);
         app.run(vec!["test".to_string(), "hello".to_string()]);
+    }
+
+    #[test]
+    fn command_with_ok_result_value_test() {
+        let a: ActionWithResult = |_: &Context| {
+            return Ok(());
+        };
+        let command = Command::new("hello").action_with_result(a);
+        let app = App::new("test").command(command);
+        let result = app.run_with_result(vec!["test".to_string(), "hello".to_string()]);
+        assert!(!result.is_err());
+    }
+
+    #[test]
+    fn command_with_error_result_value_test() {
+        let a: ActionWithResult = |_: &Context| {
+            return Err(ActionError {
+                message: "we expect this to fail".to_string(),
+            });
+        };
+        let command = Command::new("hello").action_with_result(a);
+        let app = App::new("test").command(command);
+        let result = app.run_with_result(vec!["test".to_string(), "hello".to_string()]);
+        assert!(result.is_err());
     }
 }
