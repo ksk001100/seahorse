@@ -256,6 +256,18 @@ impl App {
         }
     }
 
+    /// Run app, returning a result
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use std::env;
+    /// use seahorse::App;
+    ///
+    /// let args: Vec<String> = env::args().collect();
+    /// let app = App::new("cli");
+    /// let result = app.run_with_result(args);
+    /// ```
     pub fn run_with_result(&self, args: Vec<String>) -> ActionResult {
         let args = Self::normalized_args(args);
         let (cmd_v, args_v) = match args.len() {
@@ -303,7 +315,7 @@ impl App {
                     }
                     None => {
                         self.help();
-                        return Ok(()); // this should be an error because the command is unimplemented
+                        return Ok(());
                     }
                 },
             },
