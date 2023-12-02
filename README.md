@@ -32,7 +32,7 @@ To use seahorse, add this to your Cargo.toml:
 
 ```toml
 [dependencies]
-seahorse = "2.1"
+seahorse = "2.2"
 ```
 
 ## Example
@@ -191,11 +191,11 @@ fn calc_action(c: &Context) {
             println!("{}", sum);
         }
         Err(e) => match e {
-            FlagError::Undefined => panic!("undefined operator..."), 
-            FlagError::ArgumentError => panic!("argument error..."), 
-            FlagError::NotFound => panic!("not found flag..."), 
-            FlagError::ValueTypeError => panic!("value type mismatch..."), 
-            FlagError::TypeError => panic!("flag type mismatch..."), 
+            FlagError::Undefined => panic!("undefined operator..."),
+            FlagError::ArgumentError => panic!("argument error..."),
+            FlagError::NotFound => panic!("not found flag..."),
+            FlagError::ValueTypeError => panic!("value type mismatch..."),
+            FlagError::TypeError => panic!("flag type mismatch..."),
         },
     }
 }
@@ -235,6 +235,55 @@ $ cli calc --operator add 1 2 3 4 5
 $ cli calc -op sub 10 6 3 2
 -21
 ```
+
+### Top level error handling
+
+```rust
+use seahorse::{ActionError, App, Context, Flag, FlagType};
+use std::env;
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    let app = App::new(env!("CARGO_PKG_NAME"))
+        .author(env!("CARGO_PKG_AUTHORS"))
+        .description(env!("CARGO_PKG_DESCRIPTION"))
+        .usage("multiple_app [command] [arg]")
+        .version(env!("CARGO_PKG_VERSION"))
+        .action_with_result(|c: &Context| {
+            if c.bool_flag("error") {
+                Err(ActionError {
+                    message: "ERROR...".to_string(),
+                })
+            } else {
+                Ok(())
+            }
+        })
+        .flag(
+            Flag::new("error", FlagType::Bool)
+                .description("error flag")
+                .alias("e"),
+        );
+
+    match app.run_with_result(args) {
+        Ok(_) => println!("OK"),
+        Err(e) => match e {
+            ActionError { message } => println!("{}", message),
+        },
+    };
+}
+```
+
+```bash
+$ cli
+OK
+
+$ cli --error
+ERROR...
+
+$ cli -e
+ERROR...
+```
+
 
 ## Contributing
 Please read [CONTRIBUTING.md](.github/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
