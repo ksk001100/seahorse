@@ -494,8 +494,8 @@ impl Help for App {
 
 #[cfg(test)]
 mod tests {
-    use std::fmt;
     use crate::{Action, ActionWithResult, App, Command, Context, Flag, FlagType};
+    use std::fmt;
 
     #[test]
     fn app_new_only_test() {
