@@ -1,4 +1,6 @@
-use crate::{Action, ActionError, ActionResult, ActionWithResult, Command, Context, Flag, FlagType, Help};
+use crate::{
+    Action, ActionError, ActionResult, ActionWithResult, Command, Context, Flag, FlagType, Help,
+};
 
 /// Multiple action application entry point
 #[derive(Default)]
@@ -265,7 +267,9 @@ impl App {
             Some(c) => c,
             None => {
                 self.help();
-                return Err(ActionError{message: "unsupported command".to_string()});
+                return Err(ActionError {
+                    message: "unsupported command".to_string(),
+                });
             }
         };
 
