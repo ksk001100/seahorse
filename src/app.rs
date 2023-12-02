@@ -1,4 +1,7 @@
-use crate::{Action, ActionWithResult, Command, Context, Error, Flag, FlagType, Help, Result};
+use crate::{
+    error::Error, error::FlagError, Action, ActionWithResult, Command, Context, Flag, FlagType,
+    Help,
+};
 
 /// Multiple action application entry point
 #[derive(Default)]
@@ -250,7 +253,7 @@ impl App {
     pub fn run(&self, args: Vec<String>) {
         match self.run_with_result(args) {
             Ok(_) => return,
-            Err(e) => panic!("{}", e.message),
+            Err(e) => panic!("{}", e),
         }
     }
 
@@ -266,7 +269,7 @@ impl App {
     /// let app = App::new("cli");
     /// let result = app.run_with_result(args);
     /// ```
-    pub fn run_with_result(&self, args: Vec<String>) -> Result {
+    pub fn run_with_result(&self, args: Vec<String>) -> Result<(), Box<dyn std::error::Error>> {
         let args = Self::normalized_args(args);
         let (cmd_v, args_v) = match args.len() {
             1 => args.split_at(1),
@@ -277,9 +280,9 @@ impl App {
             Some(c) => c,
             None => {
                 self.help();
-                return Err(Error {
-                    message: "unsupported command".to_string(),
-                });
+                return Err(Box::new(Error {
+                    kind: FlagError::Undefined,
+                }));
             }
         };
 
@@ -491,7 +494,7 @@ impl Help for App {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Action, ActionWithResult, App, Command, Context, Error, Flag, FlagType};
+    use crate::{Action, ActionWithResult, App, Command, Context, Flag, FlagType};
 
     #[test]
     fn app_new_only_test() {
@@ -725,9 +728,7 @@ mod tests {
     #[should_panic]
     fn app_with_error_result_test() {
         let a: ActionWithResult = |_: &Context| {
-            return Err(Error {
-                message: "we expect this to fail".to_string(),
-            });
+            return Err(Box::new(std::io::Error::other("test")));
         };
         let app = App::new("test").action_with_result(a);
         app.run(vec!["test".to_string()]);
@@ -746,9 +747,7 @@ mod tests {
     #[test]
     fn app_with_error_result_value_test() {
         let a: ActionWithResult = |_: &Context| {
-            return Err(Error {
-                message: "we expect this to fail".to_string(),
-            });
+            return Err(Box::new(std::io::Error::other("test")));
         };
         let app = App::new("test").action_with_result(a);
         let result = app.run_with_result(vec!["test".to_string()]);
@@ -769,9 +768,7 @@ mod tests {
     #[should_panic]
     fn command_with_error_result_test() {
         let a: ActionWithResult = |_: &Context| {
-            return Err(Error {
-                message: "we expect this to fail".to_string(),
-            });
+            return Err(Box::new(std::io::Error::other("test")));
         };
         let command = Command::new("hello").action_with_result(a);
         let app = App::new("test").command(command);
@@ -792,9 +789,7 @@ mod tests {
     #[test]
     fn command_with_error_result_value_test() {
         let a: ActionWithResult = |_: &Context| {
-            return Err(Error {
-                message: "we expect this to fail".to_string(),
-            });
+            return Err(Box::new(std::io::Error::other("test")));
         };
         let command = Command::new("hello").action_with_result(a);
         let app = App::new("test").command(command);

@@ -1,4 +1,4 @@
-use seahorse::{App, Context, Error, Flag, FlagType};
+use seahorse::{App, Context, Flag, FlagType};
 use std::env;
 
 fn main() {
@@ -10,9 +10,7 @@ fn main() {
         .version(env!("CARGO_PKG_VERSION"))
         .action_with_result(|c: &Context| {
             if c.bool_flag("error") {
-                Err(Error {
-                    message: "ERROR...".to_string(),
-                })
+                Err(Box::new(std::io::Error::other("test error")))
             } else {
                 Ok(())
             }
@@ -25,8 +23,6 @@ fn main() {
 
     match app.run_with_result(args) {
         Ok(_) => println!("OK"),
-        Err(e) => match e {
-            Error { message } => println!("{}", message),
-        },
+        Err(e) => println!("{}", e),
     };
 }

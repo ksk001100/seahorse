@@ -1,4 +1,6 @@
 use crate::Context;
+use std::error::Error;
+use std::result::Result;
 
 /// Command and application action type
 ///
@@ -13,11 +15,4 @@ use crate::Context;
 /// ```
 pub type Action = fn(&Context);
 
-pub type ActionWithResult = fn(&Context) -> Result;
-
-pub type Result = std::result::Result<(), Error>;
-
-#[derive(Debug)]
-pub struct Error {
-    pub message: String,
-}
+pub type ActionWithResult = fn(&Context) -> Result<(), Box<dyn Error>>;

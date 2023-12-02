@@ -1,6 +1,19 @@
 use std::error;
 use std::fmt;
 
+#[derive(Debug)]
+pub struct Error {
+    pub kind: FlagError,
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "There is an error: {:?}", self)
+    }
+}
+
+impl std::error::Error for Error {}
+
 #[derive(PartialEq, Clone, Debug)]
 pub enum FlagError {
     NotFound,
