@@ -12,3 +12,12 @@ use crate::Context;
 /// };
 /// ```
 pub type Action = fn(&Context);
+
+pub type ActionWithResult = fn(&Context) -> ActionResult;
+
+pub type ActionResult = Result<(), ActionError>;
+
+#[derive(Debug)]
+pub struct ActionError {
+    pub message: String,
+}

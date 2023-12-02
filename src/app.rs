@@ -1,4 +1,6 @@
-use crate::{Action, Command, Context, Flag, FlagType, Help};
+use crate::{
+    Action, ActionError, ActionResult, ActionWithResult, Command, Context, Flag, FlagType, Help,
+};
 
 /// Multiple action application entry point
 #[derive(Default)]
@@ -17,6 +19,8 @@ pub struct App {
     pub commands: Option<Vec<Command>>,
     /// Application action
     pub action: Option<Action>,
+    /// Alternate application action that returns a Result
+    pub action_with_result: Option<ActionWithResult>,
     /// Application flags
     pub flags: Option<Vec<Flag>>,
 }
@@ -158,8 +162,58 @@ impl App {
     /// let app = App::new("cli")
     ///     .action(action);
     /// ```
+    ///     
+    /// # Panics
+    ///
+    /// You cannot set both action and action_with_result.
+    ///
+    /// ```should_panic
+    /// use seahorse::{Action, ActionWithResult, App, Context};
+    ///
+    /// let action_with_result: ActionWithResult = |c: &Context| {println!("{:?}", c.args); Ok(())};
+    /// let action: Action = |c: &Context| println!("{:?}", c.args);
+    /// let app = App::new("cli")
+    ///     .action_with_result(action_with_result)
+    ///     .action(action);
+    /// ```
     pub fn action(mut self, action: Action) -> Self {
+        if self.action_with_result.is_some() {
+            panic!(r#"only one of action and action_with_result can be set."#);
+        }
         self.action = Some(action);
+        self
+    }
+
+    /// Set action of the app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{ActionWithResult, App, Context};
+    ///
+    /// let action_with_result: ActionWithResult = |c: &Context| {println!("{:?}", c.args); Ok(())};
+    /// let app = App::new("cli")
+    ///     .action_with_result(action_with_result);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// You cannot set both action and action_with_result.
+    ///
+    /// ```should_panic
+    /// use seahorse::{Action, ActionWithResult, App, Context};
+    ///
+    /// let action_with_result: ActionWithResult = |c: &Context| {println!("{:?}", c.args); Ok(())};
+    /// let action: Action = |c: &Context| println!("{:?}", c.args);
+    /// let app = App::new("cli")
+    ///     .action(action)
+    ///     .action_with_result(action_with_result);
+    /// ```
+    pub fn action_with_result(mut self, action_with_result: ActionWithResult) -> Self {
+        if self.action.is_some() {
+            panic!(r#"only one of action and action_with_result can be set."#);
+        }
+        self.action_with_result = Some(action_with_result);
         self
     }
 
@@ -196,6 +250,25 @@ impl App {
     /// app.run(args);
     /// ```
     pub fn run(&self, args: Vec<String>) {
+        match self.run_with_result(args) {
+            Ok(_) => return,
+            Err(e) => panic!("{}", e.message),
+        }
+    }
+
+    /// Run app, returning a result
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use std::env;
+    /// use seahorse::App;
+    ///
+    /// let args: Vec<String> = env::args().collect();
+    /// let app = App::new("cli");
+    /// let result = app.run_with_result(args);
+    /// ```
+    pub fn run_with_result(&self, args: Vec<String>) -> ActionResult {
         let args = Self::normalized_args(args);
         let (cmd_v, args_v) = match args.len() {
             1 => args.split_at(1),
@@ -206,25 +279,45 @@ impl App {
             Some(c) => c,
             None => {
                 self.help();
-                return;
+                return Err(ActionError {
+                    message: "unsupported command".to_string(),
+                });
             }
         };
 
         match self.select_command(cmd) {
-            Some(command) => command.run(args_v.to_vec()),
+            Some(command) => return command.run_with_result(args_v.to_vec()),
             None => match self.action {
                 Some(action) => {
                     if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string()) {
                         self.help();
-                        return;
+                        return Ok(());
                     }
                     action(&Context::new(
                         args[1..].to_vec(),
                         self.flags.clone(),
                         self.help_text(),
                     ));
+                    return Ok(());
                 }
-                None => self.help(),
+                None => match self.action_with_result {
+                    Some(action_with_result) => {
+                        if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string())
+                        {
+                            self.help();
+                            return Ok(());
+                        }
+                        return action_with_result(&Context::new(
+                            args[1..].to_vec(),
+                            self.flags.clone(),
+                            self.help_text(),
+                        ));
+                    }
+                    None => {
+                        self.help();
+                        return Ok(());
+                    }
+                },
             },
         }
     }
@@ -400,7 +493,7 @@ impl Help for App {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Action, App, Command, Context, Flag, FlagType};
+    use crate::{Action, ActionError, ActionWithResult, App, Command, Context, Flag, FlagType};
 
     #[test]
     fn app_new_only_test() {
@@ -619,5 +712,95 @@ mod tests {
         assert_eq!(app.author, Some("Author <author@example.com>".to_string()));
         assert_eq!(app.description, Some("This is a great tool.".to_string()));
         assert_eq!(app.version, Some("0.0.1".to_string()));
+    }
+
+    #[test]
+    fn app_with_ok_result_test() {
+        let a: ActionWithResult = |_: &Context| {
+            return Ok(());
+        };
+        let app = App::new("test").action_with_result(a);
+        app.run(vec!["test".to_string()]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn app_with_error_result_test() {
+        let a: ActionWithResult = |_: &Context| {
+            return Err(ActionError {
+                message: "we expect this to fail".to_string(),
+            });
+        };
+        let app = App::new("test").action_with_result(a);
+        app.run(vec!["test".to_string()]);
+    }
+
+    #[test]
+    fn app_with_ok_result_value_test() {
+        let a: ActionWithResult = |_: &Context| {
+            return Ok(());
+        };
+        let app = App::new("test").action_with_result(a);
+        let result = app.run_with_result(vec!["test".to_string()]);
+        assert!(!result.is_err());
+    }
+
+    #[test]
+    fn app_with_error_result_value_test() {
+        let a: ActionWithResult = |_: &Context| {
+            return Err(ActionError {
+                message: "we expect this to fail".to_string(),
+            });
+        };
+        let app = App::new("test").action_with_result(a);
+        let result = app.run_with_result(vec!["test".to_string()]);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn command_with_ok_result_test() {
+        let a: ActionWithResult = |_: &Context| {
+            return Ok(());
+        };
+        let command = Command::new("hello").action_with_result(a);
+        let app = App::new("test").command(command);
+        app.run(vec!["test".to_string(), "hello".to_string()]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn command_with_error_result_test() {
+        let a: ActionWithResult = |_: &Context| {
+            return Err(ActionError {
+                message: "we expect this to fail".to_string(),
+            });
+        };
+        let command = Command::new("hello").action_with_result(a);
+        let app = App::new("test").command(command);
+        app.run(vec!["test".to_string(), "hello".to_string()]);
+    }
+
+    #[test]
+    fn command_with_ok_result_value_test() {
+        let a: ActionWithResult = |_: &Context| {
+            return Ok(());
+        };
+        let command = Command::new("hello").action_with_result(a);
+        let app = App::new("test").command(command);
+        let result = app.run_with_result(vec!["test".to_string(), "hello".to_string()]);
+        assert!(!result.is_err());
+    }
+
+    #[test]
+    fn command_with_error_result_value_test() {
+        let a: ActionWithResult = |_: &Context| {
+            return Err(ActionError {
+                message: "we expect this to fail".to_string(),
+            });
+        };
+        let command = Command::new("hello").action_with_result(a);
+        let app = App::new("test").command(command);
+        let result = app.run_with_result(vec!["test".to_string(), "hello".to_string()]);
+        assert!(result.is_err());
     }
 }

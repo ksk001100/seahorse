@@ -1,4 +1,4 @@
-use crate::{Action, Context, Flag, FlagType, Help};
+use crate::{Action, ActionResult, ActionWithResult, Context, Flag, FlagType, Help};
 
 /// Application command type
 #[derive(Default)]
@@ -11,6 +11,8 @@ pub struct Command {
     pub usage: Option<String>,
     /// Command action
     pub action: Option<Action>,
+    /// Alternate command action that returns a Result
+    pub action_with_result: Option<ActionWithResult>,
     /// Action flags
     pub flags: Option<Vec<Flag>>,
     /// Command alias
@@ -76,8 +78,58 @@ impl Command {
     /// let command = Command::new("cmd")
     ///     .action(action);
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// You cannot set both action and action_with_result.
+    ///
+    /// ```should_panic
+    /// use seahorse::{Action, ActionWithResult, Command, Context};
+    ///
+    /// let action_with_result: ActionWithResult = |c: &Context| {println!("{:?}", c.args); Ok(())};
+    /// let action: Action = |c: &Context| println!("{:?}", c.args);
+    /// let command = Command::new("cmd")
+    ///     .action_with_result(action_with_result)
+    ///     .action(action);
+    /// ```
     pub fn action(mut self, action: Action) -> Self {
+        if self.action_with_result.is_some() {
+            panic!(r#"only one of action and action_with_result can be set."#);
+        }
         self.action = Some(action);
+        self
+    }
+
+    /// Set action of the command
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{ActionWithResult, Command, Context};
+    ///
+    /// let action_with_result: ActionWithResult = |c: &Context| {println!("{:?}", c.args); Ok(())};
+    /// let command = Command::new("cmd")
+    ///     .action_with_result(action_with_result);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// You cannot set both action and action_with_result.
+    ///
+    /// ```should_panic
+    /// use seahorse::{Action, ActionWithResult, Command, Context};
+    ///
+    /// let action_with_result: ActionWithResult = |c: &Context| {println!("{:?}", c.args); Ok(())};
+    /// let action: Action = |c: &Context| println!("{:?}", c.args);
+    /// let command = Command::new("cmd")
+    ///     .action(action)
+    ///     .action_with_result(action_with_result);
+    /// ```
+    pub fn action_with_result(mut self, action_with_result: ActionWithResult) -> Self {
+        if self.action.is_some() {
+            panic!(r#"only one of action and action_with_result can be set."#);
+        }
+        self.action_with_result = Some(action_with_result);
         self
     }
 
@@ -204,41 +256,80 @@ impl Command {
 
     /// Run command
     /// Call this function only from `App`
-    pub fn run(&self, args: Vec<String>) {
+    pub fn run_with_result(&self, args: Vec<String>) -> ActionResult {
         let args = Self::normalized_args(args);
 
         match args.split_first() {
             Some((cmd, args_v)) => match self.select_command(cmd) {
-                Some(command) => command.run(args_v.to_vec()),
+                Some(command) => {
+                    return command.run_with_result(args_v.to_vec());
+                }
                 None => match self.action {
                     Some(action) => {
                         if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string())
                         {
                             self.help();
-                            return;
+                            return Ok(());
                         }
                         action(&Context::new(
                             args.to_vec(),
                             self.flags.clone(),
                             self.help_text(),
                         ));
+                        return Ok(());
                     }
-                    None => self.help(),
+                    None => match self.action_with_result {
+                        Some(action_with_result) => {
+                            if args.contains(&"-h".to_string())
+                                || args.contains(&"--help".to_string())
+                            {
+                                self.help();
+                                return Ok(());
+                            }
+                            return action_with_result(&Context::new(
+                                args.to_vec(),
+                                self.flags.clone(),
+                                self.help_text(),
+                            ));
+                        }
+                        None => {
+                            self.help();
+                            return Ok(());
+                        }
+                    },
                 },
             },
             None => match self.action {
                 Some(action) => {
                     if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string()) {
                         self.help();
-                        return;
+                        return Ok(());
                     }
                     action(&Context::new(
                         args.to_vec(),
                         self.flags.clone(),
                         self.help_text(),
                     ));
+                    return Ok(());
                 }
-                None => self.help(),
+                None => match self.action_with_result {
+                    Some(action_with_result) => {
+                        if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string())
+                        {
+                            self.help();
+                            return Ok(());
+                        }
+                        return action_with_result(&Context::new(
+                            args.to_vec(),
+                            self.flags.clone(),
+                            self.help_text(),
+                        ));
+                    }
+                    None => {
+                        self.help();
+                        return Ok(());
+                    }
+                },
             },
         }
     }
