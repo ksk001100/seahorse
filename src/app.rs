@@ -1,4 +1,4 @@
-use crate::{Action, ActionWithResult, Command, Context, Flag, FlagType, Help};
+use crate::{Action, ActionError, ActionResult, ActionWithResult, Command, Context, Flag, FlagType, Help};
 
 /// Multiple action application entry point
 #[derive(Default)]
@@ -248,6 +248,13 @@ impl App {
     /// app.run(args);
     /// ```
     pub fn run(&self, args: Vec<String>) {
+        match self.run_with_result(args) {
+            Ok(_) => return,
+            Err(e) => panic!("{}", e.message),
+        }
+    }
+
+    pub fn run_with_result(&self, args: Vec<String>) -> ActionResult {
         let args = Self::normalized_args(args);
         let (cmd_v, args_v) = match args.len() {
             1 => args.split_at(1),
@@ -258,41 +265,42 @@ impl App {
             Some(c) => c,
             None => {
                 self.help();
-                return;
+                return Err(ActionError{message: "unsupported command".to_string()});
             }
         };
 
         match self.select_command(cmd) {
-            Some(command) => command.run(args_v.to_vec()),
+            Some(command) => return command.run_with_result(args_v.to_vec()),
             None => match self.action {
                 Some(action) => {
                     if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string()) {
                         self.help();
-                        return;
+                        return Ok(());
                     }
                     action(&Context::new(
                         args[1..].to_vec(),
                         self.flags.clone(),
                         self.help_text(),
                     ));
+                    return Ok(());
                 }
                 None => match self.action_with_result {
                     Some(action_with_result) => {
                         if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string())
                         {
                             self.help();
-                            return;
+                            return Ok(());
                         }
-                        match action_with_result(&Context::new(
+                        return action_with_result(&Context::new(
                             args[1..].to_vec(),
                             self.flags.clone(),
                             self.help_text(),
-                        )) {
-                            Ok(_) => (),
-                            Err(e) => panic!("{}", e.message),
-                        }
+                        ));
                     }
-                    None => self.help(),
+                    None => {
+                        self.help();
+                        return Ok(()); // this should be an error because the command is unimplemented
+                    }
                 },
             },
         }

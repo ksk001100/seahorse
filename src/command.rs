@@ -1,4 +1,4 @@
-use crate::{Action, ActionWithResult, Context, Flag, FlagType, Help};
+use crate::{Action, ActionResult, ActionWithResult, Context, Flag, FlagType, Help};
 
 /// Application command type
 #[derive(Default)]
@@ -256,24 +256,27 @@ impl Command {
 
     /// Run command
     /// Call this function only from `App`
-    pub fn run(&self, args: Vec<String>) {
+    pub fn run_with_result(&self, args: Vec<String>) -> ActionResult {
         let args = Self::normalized_args(args);
 
         match args.split_first() {
             Some((cmd, args_v)) => match self.select_command(cmd) {
-                Some(command) => command.run(args_v.to_vec()),
+                Some(command) => {
+                    return command.run_with_result(args_v.to_vec());
+                }
                 None => match self.action {
                     Some(action) => {
                         if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string())
                         {
                             self.help();
-                            return;
+                            return Ok(());
                         }
                         action(&Context::new(
                             args.to_vec(),
                             self.flags.clone(),
                             self.help_text(),
                         ));
+                        return Ok(());
                     }
                     None => match self.action_with_result {
                         Some(action_with_result) => {
@@ -281,18 +284,18 @@ impl Command {
                                 || args.contains(&"--help".to_string())
                             {
                                 self.help();
-                                return;
+                                return Ok(());
                             }
-                            match action_with_result(&Context::new(
+                            return action_with_result(&Context::new(
                                 args.to_vec(),
                                 self.flags.clone(),
                                 self.help_text(),
-                            )) {
-                                Ok(_) => (),
-                                Err(e) => panic!("{}", e.message),
-                            }
+                            ));
                         }
-                        None => self.help(),
+                        None => {
+                            self.help();
+                            return Ok(());
+                        }
                     },
                 },
             },
@@ -300,31 +303,32 @@ impl Command {
                 Some(action) => {
                     if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string()) {
                         self.help();
-                        return;
+                        return Ok(());
                     }
                     action(&Context::new(
                         args.to_vec(),
                         self.flags.clone(),
                         self.help_text(),
                     ));
+                    return Ok(());
                 }
                 None => match self.action_with_result {
                     Some(action_with_result) => {
                         if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string())
                         {
                             self.help();
-                            return;
+                            return Ok(());
                         }
-                        match action_with_result(&Context::new(
+                        return action_with_result(&Context::new(
                             args.to_vec(),
                             self.flags.clone(),
                             self.help_text(),
-                        )) {
-                            Ok(_) => (),
-                            Err(e) => panic!("{}", e.message),
-                        }
+                        ));
                     }
-                    None => self.help(),
+                    None => {
+                        self.help();
+                        return Ok(());
+                    }
                 },
             },
         }
