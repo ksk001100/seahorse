@@ -1,7 +1,8 @@
 use crate::{
-    error::Error, error::FlagError, Action, ActionWithResult, Command, Context, Flag, FlagType,
-    Help,
+    error::ActionError, error::ActionErrorKind, Action, ActionWithResult, Command, Context, Flag,
+    FlagType, Help,
 };
+use std::error::Error;
 
 /// Multiple action application entry point
 #[derive(Default)]
@@ -269,7 +270,7 @@ impl App {
     /// let app = App::new("cli");
     /// let result = app.run_with_result(args);
     /// ```
-    pub fn run_with_result(&self, args: Vec<String>) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn run_with_result(&self, args: Vec<String>) -> Result<(), Box<dyn Error>> {
         let args = Self::normalized_args(args);
         let (cmd_v, args_v) = match args.len() {
             1 => args.split_at(1),
@@ -280,8 +281,8 @@ impl App {
             Some(c) => c,
             None => {
                 self.help();
-                return Err(Box::new(Error {
-                    kind: FlagError::Undefined,
+                return Err(Box::new(ActionError {
+                    kind: ActionErrorKind::NotFound,
                 }));
             }
         };
@@ -801,11 +802,6 @@ mod tests {
     #[derive(Debug, Clone)]
     struct Error;
 
-    // Generation of an error is completely separate from how it is displayed.
-    // There's no need to be concerned about cluttering complex logic with the display style.
-    //
-    // Note that we don't store any extra info about the errors. This means we can't state
-    // which string failed to parse without modifying our types to carry that information.
     impl fmt::Display for Error {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             write!(f, "test error")
