@@ -1,5 +1,6 @@
-use seahorse::{ActionError, App, Context, Flag, FlagType};
+use seahorse::{App, Context, Flag, FlagType};
 use std::env;
+use std::fmt;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -10,9 +11,7 @@ fn main() {
         .version(env!("CARGO_PKG_VERSION"))
         .action_with_result(|c: &Context| {
             if c.bool_flag("error") {
-                Err(ActionError {
-                    message: "ERROR...".to_string(),
-                })
+                Err(Box::new(Error))
             } else {
                 Ok(())
             }
@@ -25,8 +24,17 @@ fn main() {
 
     match app.run_with_result(args) {
         Ok(_) => println!("OK"),
-        Err(e) => match e {
-            ActionError { message } => println!("{}", message),
-        },
+        Err(e) => println!("{}", e),
     };
 }
+
+#[derive(Debug, Clone)]
+struct Error;
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "test error")
+    }
+}
+
+impl std::error::Error for Error {}
