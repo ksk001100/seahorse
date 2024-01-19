@@ -24,7 +24,7 @@ fn main() {
 
     match app.run_with_result(args) {
         Ok(_) => println!("OK"),
-        Err(e) => println!("{}", e),
+        Err(e) => println!("{:?}", e),
     };
 }
 
