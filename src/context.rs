@@ -77,12 +77,17 @@ impl Context {
     }
 
     // Get flag values for repeated flags
-    fn result_flag_value_vec(&self, name: &str) -> Vec::<Result<FlagValue, FlagError>> {
-        self.flags.as_ref().unwrap().iter().filter(|flag| flag.0 == name)
+    fn result_flag_value_vec(&self, name: &str) -> Vec<Result<FlagValue, FlagError>> {
+        self.flags
+            .as_ref()
+            .unwrap()
+            .iter()
+            .filter(|flag| flag.0 == name)
             .map(|f| match &f.1 {
-            Ok(val) => Ok(val.to_owned()),
-            Err(e) => Err(e.to_owned()),
-        }).collect::<Vec<_>>()
+                Ok(val) => Ok(val.to_owned()),
+                Err(e) => Err(e.to_owned()),
+            })
+            .collect::<Vec<_>>()
     }
 
     /// Get bool flag
@@ -149,13 +154,12 @@ impl Context {
     pub fn string_flag_vec(&self, name: &str) -> Vec<Result<String, FlagError>> {
         let r = self.result_flag_value_vec(name);
 
-        r.iter().map(|r|
-        {
-            match r {
+        r.iter()
+            .map(|r| match r {
                 Ok(FlagValue::String(val)) => Ok(val.clone()),
                 _ => Err(FlagError::TypeError),
-            }
-        }).collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>()
     }
 
     /// Get int flag
@@ -199,13 +203,12 @@ impl Context {
     pub fn int_flag_vec(&self, name: &str) -> Vec<Result<isize, FlagError>> {
         let r = self.result_flag_value_vec(name);
 
-        r.iter().map(|r|
-        {
-            match r {
+        r.iter()
+            .map(|r| match r {
                 Ok(FlagValue::Int(val)) => Ok(val.clone()),
                 _ => Err(FlagError::TypeError),
-            }
-        }).collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>()
     }
 
     /// Get Uint flag
@@ -249,13 +252,12 @@ impl Context {
     pub fn uint_flag_vec(&self, name: &str) -> Vec<Result<usize, FlagError>> {
         let r = self.result_flag_value_vec(name);
 
-        r.iter().map(|r|
-        {
-            match r {
+        r.iter()
+            .map(|r| match r {
                 Ok(FlagValue::Uint(val)) => Ok(val.clone()),
                 _ => Err(FlagError::TypeError),
-            }
-        }).collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>()
     }
 
     /// Get float flag
@@ -301,13 +303,12 @@ impl Context {
 
         // I would like to map the Result<FlagValue, FlagError> to Result<f64, FlagError>
 
-        r.iter().map(|r|
-        {
-            match *r {
+        r.iter()
+            .map(|r| match *r {
                 Ok(FlagValue::Float(val)) => Ok(val),
                 _ => Err(FlagError::TypeError),
-            }
-        }).collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>()
     }
 
     /// Display help
