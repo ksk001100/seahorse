@@ -21,21 +21,31 @@ impl Context {
         let flags_val = match flags {
             Some(flags) => {
                 for flag in flags {
-                    if let Some(index) = flag.option_index(&parsed_args) {
-                        parsed_args.remove(index);
+                    let mut found_flag = false;
+                    loop {
+                        if let Some(index) = flag.option_index(&parsed_args) {
+                            found_flag = true;
+                            parsed_args.remove(index);
 
-                        let val = if flag.flag_type != FlagType::Bool {
-                            if parsed_args.len() <= index {
-                                None
+                            let val = if flag.flag_type != FlagType::Bool {
+                                if parsed_args.len() <= index {
+                                    None
+                                } else {
+                                    Some(parsed_args.remove(index))
+                                }
                             } else {
-                                Some(parsed_args.remove(index))
+                                None
+                            };
+                            v.push((flag.name.to_string(), flag.value(val)));
+                            if !flag.multiple {
+                                break;
                             }
                         } else {
-                            None
-                        };
-                        v.push((flag.name.to_string(), flag.value(val)))
-                    } else {
-                        v.push((flag.name.to_string(), Err(FlagError::NotFound)))
+                            if !found_flag {
+                                v.push((flag.name.to_string(), Err(FlagError::NotFound)));
+                            }
+                            break;
+                        }
                     }
                 }
                 Some(v)
@@ -64,6 +74,15 @@ impl Context {
             },
             None => Err(FlagError::Undefined),
         }
+    }
+
+    // Get flag values for repeated flags
+    fn result_flag_value_vec(&self, name: &str) -> Vec::<Result<FlagValue, FlagError>> {
+        self.flags.as_ref().unwrap().iter().filter(|flag| flag.0 == name)
+            .map(|f| match &f.1 {
+            Ok(val) => Ok(val.to_owned()),
+            Err(e) => Err(e.to_owned()),
+        }).collect::<Vec<_>>()
     }
 
     /// Get bool flag
@@ -111,6 +130,34 @@ impl Context {
         }
     }
 
+    /// Get string flags for repeated flags
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::Context;
+    ///
+    /// fn action(c: &Context) {
+    ///    for s in c.string_flag_vec("string") {
+    ///       match s {
+    ///          Ok(s) => println!("{}", s),
+    ///         Err(e) => println!("{}", e)
+    ///      }
+    ///   }
+    /// }
+    /// ```
+    pub fn string_flag_vec(&self, name: &str) -> Vec<Result<String, FlagError>> {
+        let r = self.result_flag_value_vec(name);
+
+        r.iter().map(|r|
+        {
+            match r {
+                Ok(FlagValue::String(val)) => Ok(val.clone()),
+                _ => Err(FlagError::TypeError),
+            }
+        }).collect::<Vec<_>>()
+    }
+
     /// Get int flag
     ///
     /// Example
@@ -131,6 +178,34 @@ impl Context {
             FlagValue::Int(val) => Ok(val),
             _ => Err(FlagError::TypeError),
         }
+    }
+
+    /// Get int flags for repeated flags
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::Context;
+    ///
+    /// fn action(c: &Context) {
+    ///     for i in c.int_flag_vec("int") {
+    ///         match i {
+    ///             Ok(i) => println!("{}", i),
+    ///            Err(e) => println!("{}", e)
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    pub fn int_flag_vec(&self, name: &str) -> Vec<Result<isize, FlagError>> {
+        let r = self.result_flag_value_vec(name);
+
+        r.iter().map(|r|
+        {
+            match r {
+                Ok(FlagValue::Int(val)) => Ok(val.clone()),
+                _ => Err(FlagError::TypeError),
+            }
+        }).collect::<Vec<_>>()
     }
 
     /// Get Uint flag
@@ -155,6 +230,34 @@ impl Context {
         }
     }
 
+    /// Get uint flags for repeated flags
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::Context;
+    ///
+    /// fn action(c: &Context) {
+    ///     for i in c.uint_flag_vec("uint") {
+    ///         match i {
+    ///             Ok(i) => println!("{}", i),
+    ///            Err(e) => println!("{}", e)
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    pub fn uint_flag_vec(&self, name: &str) -> Vec<Result<usize, FlagError>> {
+        let r = self.result_flag_value_vec(name);
+
+        r.iter().map(|r|
+        {
+            match r {
+                Ok(FlagValue::Uint(val)) => Ok(val.clone()),
+                _ => Err(FlagError::TypeError),
+            }
+        }).collect::<Vec<_>>()
+    }
+
     /// Get float flag
     ///
     /// Example
@@ -175,6 +278,36 @@ impl Context {
             FlagValue::Float(val) => Ok(val),
             _ => Err(FlagError::TypeError),
         }
+    }
+
+    /// Get float flags for repeated flags
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::Context;
+    ///
+    /// fn action(c: &Context) {
+    ///     for f in c.float_flag_vec("float") {
+    ///         match f {
+    ///             Ok(f) => println!("{}", f),
+    ///            Err(e) => println!("{}", e)
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    pub fn float_flag_vec(&self, name: &str) -> Vec<Result<f64, FlagError>> {
+        let r = self.result_flag_value_vec(name);
+
+        // I would like to map the Result<FlagValue, FlagError> to Result<f64, FlagError>
+
+        r.iter().map(|r|
+        {
+            match *r {
+                Ok(FlagValue::Float(val)) => Ok(val),
+                _ => Err(FlagError::TypeError),
+            }
+        }).collect::<Vec<_>>()
     }
 
     /// Display help
@@ -213,6 +346,8 @@ mod tests {
             "1234567654321".to_string(),
             "--float".to_string(),
             "1.23".to_string(),
+            "--float".to_string(),
+            "1.44".to_string(),
             "--invalid_float".to_string(),
             "invalid".to_string(),
         ];
@@ -221,7 +356,7 @@ mod tests {
             Flag::new("string", FlagType::String),
             Flag::new("int", FlagType::Int),
             Flag::new("uint", FlagType::Uint),
-            Flag::new("float", FlagType::Float),
+            Flag::new("float", FlagType::Float).multiple(),
             Flag::new("invalid_float", FlagType::Float),
             Flag::new("not_specified", FlagType::String),
         ];
