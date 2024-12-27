@@ -113,6 +113,33 @@ impl Context {
         }
     }
 
+    /// Get bool flags for repeated flags
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::Context;
+    ///
+    /// fn action(c: &Context) {
+    ///     for b in c.bool_flag_vec("bool") {
+    ///         match b {
+    ///            Ok(b) => println!("{}", b),
+    ///            Err(e) => println!("{}", e)
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    pub fn bool_flag_vec(&self, name: &str) -> Vec<Result<bool, FlagError>> {
+        let r = self.result_flag_value_vec(name);
+
+        r.iter()
+            .map(|r| match r {
+                Ok(FlagValue::Bool(val)) => Ok(val.clone()),
+                _ => Err(FlagError::TypeError),
+            })
+            .collect::<Vec<_>>()
+    }
+
     /// Get string flag
     ///
     /// Example
