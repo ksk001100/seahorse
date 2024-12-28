@@ -164,7 +164,7 @@ impl App {
     /// let app = App::new("cli")
     ///     .action(action);
     /// ```
-    ///     
+    ///
     /// # Panics
     ///
     /// You cannot set both action and action_with_result.
@@ -366,11 +366,23 @@ impl App {
                 let alias = match &f.alias {
                     Some(alias) => alias
                         .iter()
+                        .filter(|&a| a.len() == 1)
                         .map(|a| format!("-{}", a))
                         .collect::<Vec<String>>()
                         .join(", "),
                     None => String::new(),
                 };
+
+                let long_alias = match &f.alias {
+                    Some(alias) => alias
+                        .iter()
+                        .filter(|a| a.len() > 1)
+                        .map(|a| format!("--{}", a))
+                        .collect::<Vec<String>>()
+                        .join(", "),
+                    None => String::new(),
+                };
+
                 let val = match f.flag_type {
                     FlagType::Int => int_val,
                     FlagType::Float => float_val,
@@ -379,9 +391,17 @@ impl App {
                 };
 
                 let help = if alias.is_empty() {
-                    format!("--{} {}", f.name, val)
+                    if long_alias.is_empty() {
+                        format!("--{} {}", f.name, val)
+                    } else {
+                        format!("{}, --{}, {}", long_alias, f.name, val)
+                    }
                 } else {
-                    format!("{}, --{} {}", alias, f.name, val)
+                    if long_alias.is_empty() {
+                        format!("{}, --{} {}", alias, f.name, val)
+                    } else {
+                        format!("{}, {}, --{} {}", alias, long_alias, f.name, val)
+                    }
                 };
 
                 (help, f.description.clone())
