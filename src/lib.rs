@@ -5,6 +5,7 @@ mod context;
 pub mod error;
 mod flag;
 mod help;
+mod utils;
 
 pub use action::{Action, ActionWithResult};
 pub use app::App;

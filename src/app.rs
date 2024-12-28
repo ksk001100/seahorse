@@ -1,3 +1,4 @@
+use crate::utils::normalized_args;
 use crate::{
     error::ActionError, error::ActionErrorKind, Action, ActionWithResult, Command, Context, Flag,
     FlagType, Help,
@@ -271,7 +272,7 @@ impl App {
     /// let result = app.run_with_result(args);
     /// ```
     pub fn run_with_result(&self, args: Vec<String>) -> Result<(), Box<dyn Error>> {
-        let args = Self::normalized_args(args);
+        let args = normalized_args(args);
         let (cmd_v, args_v) = match args.len() {
             1 => args.split_at(1),
             _ => args[1..].split_at(1),
@@ -334,35 +335,6 @@ impl App {
             }),
             None => None,
         }
-    }
-
-    /// Split arg with "=" to unify arg notations.
-    /// --flag=value => ["--flag", "value"]
-    /// --flag value => ["--flag", "value"]
-    /// -abe => ["-a", "-b", "-e"]
-    /// -abef=32 => ["-a", "-b", "-e", "-f", "32"]
-    fn normalized_args(raw_args: Vec<String>) -> Vec<String> {
-        raw_args.iter().fold(Vec::<String>::new(), |mut acc, cur| {
-            if cur.starts_with('-') && !cur.starts_with("--") {
-                if cur.contains('=') {
-                    let splitted_flag: Vec<String> =
-                        cur.splitn(2, '=').map(|s| s.to_owned()).collect();
-                    let short_named = splitted_flag[0].chars().skip(1).map(|c| format!("-{}", c));
-                    acc.append(&mut short_named.collect());
-                    acc.append(&mut splitted_flag[1..].to_vec());
-                } else {
-                    let short_named = cur.chars().skip(1).map(|c| format!("-{}", c));
-                    acc.append(&mut short_named.collect());
-                }
-            } else if cur.starts_with('-') && cur.contains('=') {
-                let mut splitted_flag: Vec<String> =
-                    cur.splitn(2, '=').map(|s| s.to_owned()).collect();
-                acc.append(&mut splitted_flag);
-            } else {
-                acc.push(cur.to_owned());
-            }
-            acc
-        })
     }
 
     fn flag_help_text(&self) -> String {

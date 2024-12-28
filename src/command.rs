@@ -1,3 +1,4 @@
+use crate::utils::normalized_args;
 use crate::{Action, ActionWithResult, Context, Flag, FlagType, Help};
 use std::error::Error;
 
@@ -242,34 +243,10 @@ impl Command {
         }
     }
 
-    fn normalized_args(raw_args: Vec<String>) -> Vec<String> {
-        raw_args.iter().fold(Vec::<String>::new(), |mut acc, cur| {
-            if cur.starts_with('-') && !cur.starts_with("--") {
-                if cur.contains('=') {
-                    let splitted_flag: Vec<String> =
-                        cur.splitn(2, '=').map(|s| s.to_owned()).collect();
-                    let short_named = splitted_flag[0].chars().skip(1).map(|c| format!("-{}", c));
-                    acc.append(&mut short_named.collect());
-                    acc.append(&mut splitted_flag[1..].to_vec());
-                } else {
-                    let short_named = cur.chars().skip(1).map(|c| format!("-{}", c));
-                    acc.append(&mut short_named.collect());
-                }
-            } else if cur.starts_with('-') && cur.contains('=') {
-                let mut splitted_flag: Vec<String> =
-                    cur.splitn(2, '=').map(|s| s.to_owned()).collect();
-                acc.append(&mut splitted_flag);
-            } else {
-                acc.push(cur.to_owned());
-            }
-            acc
-        })
-    }
-
     /// Run command
     /// Call this function only from `App`
     pub fn run_with_result(&self, args: Vec<String>) -> Result<(), Box<dyn Error>> {
-        let args = Self::normalized_args(args);
+        let args = normalized_args(args);
 
         match args.split_first() {
             Some((cmd, args_v)) => match self.select_command(cmd) {
