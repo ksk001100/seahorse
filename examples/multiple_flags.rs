@@ -8,7 +8,7 @@ fn main() {
     let app = App::new(name)
         .author(env!("CARGO_PKG_AUTHORS"))
         .description(env!("CARGO_PKG_DESCRIPTION"))
-        .usage("single_app [args]")
+        .usage("multiple_flags [args]")
         .version(env!("CARGO_PKG_VERSION"))
         .action(action)
         .flag(
