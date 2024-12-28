@@ -13,6 +13,8 @@ pub struct Flag {
     pub flag_type: FlagType,
     /// Flag alias
     pub alias: Option<Vec<String>>,
+    /// Multiple occurrence
+    pub multiple: bool,
 }
 
 /// `FlagType` enum
@@ -72,6 +74,7 @@ impl Flag {
             description: None,
             flag_type,
             alias: None,
+            multiple: false,
         }
     }
 
@@ -87,6 +90,21 @@ impl Flag {
     /// ```
     pub fn description<T: Into<String>>(mut self, description: T) -> Self {
         self.description = Some(description.into());
+        self
+    }
+
+    /// Set multiple flag
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::{Flag, FlagType};
+    ///
+    /// let bool_flag = Flag::new("bool", FlagType::Bool)
+    ///    .multiple();
+    /// ```
+    pub fn multiple(mut self) -> Self {
+        self.multiple = true;
         self
     }
 
@@ -281,6 +299,25 @@ mod tests {
 
         match float_flag.value(Some(v[4].to_owned())) {
             Ok(FlagValue::Float(val)) => assert_eq!(1.23, val),
+            _ => assert!(false),
+        }
+    }
+
+    #[test]
+    fn multiple_string_flag_test() {
+        let string_flag = Flag::new("string", FlagType::String);
+        let v = vec![
+            "cli".to_string(),
+            "command".to_string(),
+            "args".to_string(),
+            "--string".to_string(),
+            "test".to_string(),
+            "--string".to_string(),
+            "test2".to_string(),
+        ];
+
+        match string_flag.value(Some(v[4].to_owned())) {
+            Ok(FlagValue::String(val)) => assert_eq!("test".to_string(), val),
             _ => assert!(false),
         }
     }
