@@ -41,7 +41,7 @@ impl Context {
                                 break;
                             }
                         } else {
-                            if !found_flag {
+                            if !found_flag || !flag.multiple {
                                 v.push((flag.name.to_string(), Err(FlagError::NotFound)));
                             }
                             break;
@@ -135,6 +135,7 @@ impl Context {
         r.iter()
             .map(|r| match r {
                 Ok(FlagValue::Bool(val)) => Ok(val.clone()),
+                Err(FlagError::NotFound) => Err(FlagError::NotFound),
                 _ => Err(FlagError::TypeError),
             })
             .collect::<Vec<_>>()
@@ -184,6 +185,7 @@ impl Context {
         r.iter()
             .map(|r| match r {
                 Ok(FlagValue::String(val)) => Ok(val.clone()),
+                Err(FlagError::NotFound) => Err(FlagError::NotFound),
                 _ => Err(FlagError::TypeError),
             })
             .collect::<Vec<_>>()
@@ -233,6 +235,7 @@ impl Context {
         r.iter()
             .map(|r| match r {
                 Ok(FlagValue::Int(val)) => Ok(val.clone()),
+                Err(FlagError::NotFound) => Err(FlagError::NotFound),
                 _ => Err(FlagError::TypeError),
             })
             .collect::<Vec<_>>()
@@ -282,6 +285,7 @@ impl Context {
         r.iter()
             .map(|r| match r {
                 Ok(FlagValue::Uint(val)) => Ok(val.clone()),
+                Err(FlagError::NotFound) => Err(FlagError::NotFound),
                 _ => Err(FlagError::TypeError),
             })
             .collect::<Vec<_>>()
@@ -333,6 +337,7 @@ impl Context {
         r.iter()
             .map(|r| match *r {
                 Ok(FlagValue::Float(val)) => Ok(val),
+                Err(FlagError::NotFound) => Err(FlagError::NotFound),
                 _ => Err(FlagError::TypeError),
             })
             .collect::<Vec<_>>()
