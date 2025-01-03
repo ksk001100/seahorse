@@ -362,6 +362,7 @@ impl Context {
 #[cfg(test)]
 mod tests {
     use crate::error::FlagError;
+    use crate::utils::normalized_args;
     use crate::{Context, Flag, FlagType};
 
     #[test]
@@ -377,10 +378,12 @@ mod tests {
             "100".to_string(),
             "--uint".to_string(),
             "1234567654321".to_string(),
-            "--float".to_string(),
+            "--float_alias".to_string(),
             "1.23".to_string(),
             "--float".to_string(),
             "1.44".to_string(),
+            "-ga".to_string(),
+            "atest".to_string(),
             "--invalid_float".to_string(),
             "invalid".to_string(),
         ];
@@ -389,17 +392,23 @@ mod tests {
             Flag::new("string", FlagType::String),
             Flag::new("int", FlagType::Int),
             Flag::new("uint", FlagType::Uint),
-            Flag::new("float", FlagType::Float).multiple(),
+            Flag::new("float", FlagType::Float)
+                .multiple()
+                .alias("float_alias"),
+            Flag::new("gbool", FlagType::Bool).alias("g"),
+            Flag::new("alias", FlagType::String).alias("a"),
             Flag::new("invalid_float", FlagType::Float),
             Flag::new("not_specified", FlagType::String),
         ];
-        let context = Context::new(args, Some(flags), "".to_string());
+        let context = Context::new(normalized_args(args), Some(flags), "".to_string());
 
         assert_eq!(context.bool_flag("bool"), true);
         assert_eq!(context.string_flag("string"), Ok("test".to_string()));
         assert_eq!(context.int_flag("int"), Ok(100));
         assert_eq!(context.uint_flag("uint"), Ok(1234567654321));
         assert_eq!(context.float_flag("float"), Ok(1.23));
+        assert_eq!(context.bool_flag("gbool"), true);
+        assert_eq!(context.string_flag("alias"), Ok("atest".to_string()));
 
         // string value arg, string flag, used as int
         assert_eq!(context.int_flag("string"), Err(FlagError::TypeError));
