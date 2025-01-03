@@ -135,7 +135,14 @@ impl Flag {
     pub fn option_index(&self, v: &[String]) -> Option<usize> {
         match &self.alias {
             Some(alias) => v.iter().position(|r| {
-                r == &format!("--{}", &self.name) || alias.iter().any(|a| r == &format!("-{}", a))
+                r == &format!("--{}", &self.name)
+                    || alias.iter().any(|a| {
+                        if a.len() > 1 {
+                            r == &format!("--{}", a)
+                        } else {
+                            r == &format!("-{}", a)
+                        }
+                    })
             }),
             None => v.iter().position(|r| r == &format!("--{}", &self.name)),
         }
@@ -184,15 +191,16 @@ mod tests {
             "cli".to_string(),
             "command".to_string(),
             "-a".to_string(),
+            "--ag".to_string(),
             "--bool".to_string(),
             "-c".to_string(),
         ];
         {
             let f = Flag::new("bool", FlagType::Bool);
-            assert_eq!(f.option_index(&v), Some(3));
+            assert_eq!(f.option_index(&v), Some(4));
         }
         {
-            let f = Flag::new("age", FlagType::Bool).alias("a");
+            let f = Flag::new("age", FlagType::Bool).alias("ag").alias("a");
             assert_eq!(f.option_index(&v), Some(2));
         }
         {

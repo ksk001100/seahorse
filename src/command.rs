@@ -1,3 +1,4 @@
+use crate::utils::normalized_args;
 use crate::{Action, ActionWithResult, Context, Flag, FlagType, Help};
 use std::error::Error;
 
@@ -242,23 +243,10 @@ impl Command {
         }
     }
 
-    fn normalized_args(raw_args: Vec<String>) -> Vec<String> {
-        raw_args.iter().fold(Vec::<String>::new(), |mut acc, cur| {
-            if cur.starts_with('-') && cur.contains('=') {
-                let mut splitted_flag: Vec<String> =
-                    cur.splitn(2, '=').map(|s| s.to_owned()).collect();
-                acc.append(&mut splitted_flag);
-            } else {
-                acc.push(cur.to_owned());
-            }
-            acc
-        })
-    }
-
     /// Run command
     /// Call this function only from `App`
     pub fn run_with_result(&self, args: Vec<String>) -> Result<(), Box<dyn Error>> {
-        let args = Self::normalized_args(args);
+        let args = normalized_args(args);
 
         match args.split_first() {
             Some((cmd, args_v)) => match self.select_command(cmd) {
@@ -349,11 +337,23 @@ impl Command {
                 let alias = match &f.alias {
                     Some(alias) => alias
                         .iter()
+                        .filter(|a| a.len() == 1)
                         .map(|a| format!("-{}", a))
                         .collect::<Vec<String>>()
                         .join(", "),
                     None => String::new(),
                 };
+
+                let long_alias = match &f.alias {
+                    Some(alias) => alias
+                        .iter()
+                        .filter(|a| a.len() > 1)
+                        .map(|a| format!("--{}", a))
+                        .collect::<Vec<String>>()
+                        .join(", "),
+                    None => String::new(),
+                };
+
                 let val = match f.flag_type {
                     FlagType::Int => int_val,
                     FlagType::Float => float_val,
@@ -362,9 +362,17 @@ impl Command {
                 };
 
                 let help = if alias.is_empty() {
-                    format!("--{} {}", f.name, val)
+                    if long_alias.is_empty() {
+                        format!("--{} {}", f.name, val)
+                    } else {
+                        format!("{}, --{}, {}", long_alias, f.name, val)
+                    }
                 } else {
-                    format!("{}, --{} {}", alias, f.name, val)
+                    if long_alias.is_empty() {
+                        format!("{}, --{} {}", alias, f.name, val)
+                    } else {
+                        format!("{}, {}, --{} {}", alias, long_alias, f.name, val)
+                    }
                 };
 
                 (help, f.description.clone())

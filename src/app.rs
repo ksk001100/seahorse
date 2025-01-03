@@ -1,3 +1,4 @@
+use crate::utils::normalized_args;
 use crate::{
     error::ActionError, error::ActionErrorKind, Action, ActionWithResult, Command, Context, Flag,
     FlagType, Help,
@@ -164,7 +165,7 @@ impl App {
     /// let app = App::new("cli")
     ///     .action(action);
     /// ```
-    ///     
+    ///
     /// # Panics
     ///
     /// You cannot set both action and action_with_result.
@@ -271,7 +272,7 @@ impl App {
     /// let result = app.run_with_result(args);
     /// ```
     pub fn run_with_result(&self, args: Vec<String>) -> Result<(), Box<dyn Error>> {
-        let args = Self::normalized_args(args);
+        let args = normalized_args(args);
         let (cmd_v, args_v) = match args.len() {
             1 => args.split_at(1),
             _ => args[1..].split_at(1),
@@ -336,22 +337,6 @@ impl App {
         }
     }
 
-    /// Split arg with "=" to unify arg notations.
-    /// --flag=value => ["--flag", "value"]
-    /// --flag value => ["--flag", "value"]
-    fn normalized_args(raw_args: Vec<String>) -> Vec<String> {
-        raw_args.iter().fold(Vec::<String>::new(), |mut acc, cur| {
-            if cur.starts_with('-') && cur.contains('=') {
-                let mut splitted_flag: Vec<String> =
-                    cur.splitn(2, '=').map(|s| s.to_owned()).collect();
-                acc.append(&mut splitted_flag);
-            } else {
-                acc.push(cur.to_owned());
-            }
-            acc
-        })
-    }
-
     fn flag_help_text(&self) -> String {
         let mut text = String::new();
         text += "Flags:\n";
@@ -366,11 +351,23 @@ impl App {
                 let alias = match &f.alias {
                     Some(alias) => alias
                         .iter()
+                        .filter(|&a| a.len() == 1)
                         .map(|a| format!("-{}", a))
                         .collect::<Vec<String>>()
                         .join(", "),
                     None => String::new(),
                 };
+
+                let long_alias = match &f.alias {
+                    Some(alias) => alias
+                        .iter()
+                        .filter(|a| a.len() > 1)
+                        .map(|a| format!("--{}", a))
+                        .collect::<Vec<String>>()
+                        .join(", "),
+                    None => String::new(),
+                };
+
                 let val = match f.flag_type {
                     FlagType::Int => int_val,
                     FlagType::Float => float_val,
@@ -379,9 +376,17 @@ impl App {
                 };
 
                 let help = if alias.is_empty() {
-                    format!("--{} {}", f.name, val)
+                    if long_alias.is_empty() {
+                        format!("--{} {}", f.name, val)
+                    } else {
+                        format!("{}, --{}, {}", long_alias, f.name, val)
+                    }
                 } else {
-                    format!("{}, --{} {}", alias, f.name, val)
+                    if long_alias.is_empty() {
+                        format!("{}, --{} {}", alias, f.name, val)
+                    } else {
+                        format!("{}, {}, --{} {}", alias, long_alias, f.name, val)
+                    }
                 };
 
                 (help, f.description.clone())
