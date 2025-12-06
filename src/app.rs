@@ -225,6 +225,17 @@ impl App {
                     ))
                 }
                 None => {
+                    if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string()) {
+                        self.help();
+                        return Ok(());
+                    }
+
+                    if args.len() > 1 {
+                        return Err(Box::new(ActionError {
+                            kind: ActionErrorKind::NotFound,
+                        }));
+                    }
+
                     self.help();
                     Ok(())
                 }
@@ -407,6 +418,7 @@ impl Help for App {
 
 #[cfg(test)]
 mod tests {
+    use crate::error::{ActionError, ActionErrorKind, ConfigError};
     use crate::{Action, App, Command, Context, Flag, FlagType};
     use std::fmt;
 
@@ -695,6 +707,40 @@ mod tests {
         let app = App::new("test").command(command);
         let result = app.run(vec!["test".to_string(), "hello".to_string()]);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn duplicate_command_name_test() {
+        let command1 = Command::new("hello");
+        let command2 = Command::new("hello");
+        let app = App::new("test").command(command1).command(command2);
+
+        let result = app.run(vec!["test".to_string(), "hello".to_string()]);
+
+        assert!(result.is_err());
+        let err = result.err().unwrap();
+        if let Some(config_error) = err.downcast_ref::<ConfigError>() {
+            assert_eq!(
+                config_error,
+                &ConfigError::CommandNameAlreadyRegistered("hello".to_string())
+            );
+        } else {
+            panic!("Expected ConfigError::CommandNameAlreadyRegistered");
+        }
+    }
+
+    #[test]
+    fn unknown_command_test() {
+        let app = App::new("test");
+        let result = app.run(vec!["test".to_string(), "unknown".to_string()]);
+        assert!(result.is_err());
+
+        let err = result.err().unwrap();
+        if let Some(action_error) = err.downcast_ref::<ActionError>() {
+            assert_eq!(action_error.kind, ActionErrorKind::NotFound);
+        } else {
+            panic!("Expected ActionError::NotFound");
+        }
     }
 
     #[derive(Debug, Clone)]
