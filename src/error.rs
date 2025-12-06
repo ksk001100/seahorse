@@ -59,3 +59,24 @@ impl error::Error for FlagError {
         }
     }
 }
+
+#[derive(PartialEq, Clone, Debug)]
+pub enum ConfigError {
+    CommandNameAlreadyRegistered(String),
+    ActionAlreadySet,
+}
+
+impl fmt::Display for ConfigError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ConfigError::CommandNameAlreadyRegistered(name) => {
+                write!(f, "Command name \"{}\" is already registered.", name)
+            }
+            ConfigError::ActionAlreadySet => {
+                write!(f, "Only one of action and action can be set.")
+            }
+        }
+    }
+}
+
+impl std::error::Error for ConfigError {}

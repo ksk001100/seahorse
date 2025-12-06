@@ -1,5 +1,6 @@
 use seahorse::{App, Context, Flag, FlagType};
 use std::env;
+use std::error::Error;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -17,13 +18,17 @@ fn main() {
                 .alias("b"),
         );
 
-    app.run(args);
+    if let Err(e) = app.run(args) {
+        eprintln!("{}", e);
+        std::process::exit(1);
+    }
 }
 
-fn action(c: &Context) {
+fn action(c: &Context) -> Result<(), Box<dyn Error>> {
     if c.bool_flag("bye") {
         println!("Bye, {:?}", c.args);
     } else {
         println!("Hello, {:?}", c.args);
     }
+    Ok(())
 }
