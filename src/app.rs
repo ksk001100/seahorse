@@ -713,9 +713,7 @@ mod tests {
     fn duplicate_command_name_test() {
         let command1 = Command::new("hello");
         let command2 = Command::new("hello");
-        let app = App::new("test")
-            .command(command1)
-            .command(command2);
+        let app = App::new("test").command(command1).command(command2);
 
         let result = app.run(vec!["test".to_string(), "hello".to_string()]);
 
