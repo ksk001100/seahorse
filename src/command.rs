@@ -157,8 +157,9 @@ impl Command {
                 .iter()
                 .any(|registered| registered.name == command.name)
             {
-                self.registration_error =
-                    Some(ConfigError::CommandNameAlreadyRegistered(command.name.clone()));
+                self.registration_error = Some(ConfigError::CommandNameAlreadyRegistered(
+                    command.name.clone(),
+                ));
             }
             (*commands).push(command);
         } else {

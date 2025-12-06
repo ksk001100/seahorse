@@ -127,8 +127,9 @@ impl App {
                 .iter()
                 .any(|registered| registered.name == command.name)
             {
-                self.registration_error =
-                    Some(ConfigError::CommandNameAlreadyRegistered(command.name.clone()));
+                self.registration_error = Some(ConfigError::CommandNameAlreadyRegistered(
+                    command.name.clone(),
+                ));
             }
             (*commands).push(command);
         } else {
@@ -467,7 +468,8 @@ mod tests {
             "100".to_string(),
             "--float".to_string(),
             "1.23".to_string(),
-        ]).unwrap();
+        ])
+        .unwrap();
 
         app.run(vec![
             "test".to_string(),
@@ -480,7 +482,8 @@ mod tests {
             "100".to_string(),
             "--float".to_string(),
             "1.23".to_string(),
-        ]).unwrap();
+        ])
+        .unwrap();
 
         assert_eq!(app.name, "test".to_string());
         assert_eq!(app.usage, Some("test [command] [arg]".to_string()));
@@ -529,7 +532,8 @@ mod tests {
             "100".to_string(),
             "--float".to_string(),
             "1.23".to_string(),
-        ]).unwrap();
+        ])
+        .unwrap();
 
         assert_eq!(app.name, "test".to_string());
         assert_eq!(app.usage, Some("test [arg]".to_string()));
@@ -577,7 +581,8 @@ mod tests {
             "100".to_string(),
             "--float".to_string(),
             "1.23".to_string(),
-        ]).unwrap();
+        ])
+        .unwrap();
 
         assert_eq!(app.name, "test".to_string());
         assert_eq!(app.usage, Some("test".to_string()));
@@ -623,7 +628,8 @@ mod tests {
             "--string=str=ing".to_string(),
             "--int=100".to_string(),
             "-f=1.23".to_string(),
-        ]).unwrap();
+        ])
+        .unwrap();
 
         assert_eq!(app.name, "test".to_string());
         assert_eq!(app.usage, Some("test [arg]".to_string()));
@@ -634,18 +640,14 @@ mod tests {
 
     #[test]
     fn app_with_ok_result_test() {
-        let a: Action = |_: &Context| {
-            Ok(())
-        };
+        let a: Action = |_: &Context| Ok(());
         let app = App::new("test").action(a);
         app.run(vec!["test".to_string()]).unwrap();
     }
 
     #[test]
     fn app_with_ok_result_value_test() {
-        let a: Action = |_: &Context| {
-            Ok(())
-        };
+        let a: Action = |_: &Context| Ok(());
         let app = App::new("test").action(a);
         let result = app.run(vec!["test".to_string()]);
         assert!(result.is_ok());
@@ -653,9 +655,7 @@ mod tests {
 
     #[test]
     fn app_with_error_result_test() {
-        let a: Action = |_: &Context| {
-            Err(Box::new(Error))
-        };
+        let a: Action = |_: &Context| Err(Box::new(Error));
         let app = App::new("test").action(a);
         let result = app.run(vec!["test".to_string()]);
         assert!(result.is_err());
@@ -663,19 +663,16 @@ mod tests {
 
     #[test]
     fn command_with_ok_result_test() {
-        let a: Action = |_: &Context| {
-            Ok(())
-        };
+        let a: Action = |_: &Context| Ok(());
         let command = Command::new("hello").action(a);
         let app = App::new("test").command(command);
-        app.run(vec!["test".to_string(), "hello".to_string()]).unwrap();
+        app.run(vec!["test".to_string(), "hello".to_string()])
+            .unwrap();
     }
 
     #[test]
     fn command_with_error_result_test() {
-        let a: Action = |_: &Context| {
-            Err(Box::new(Error))
-        };
+        let a: Action = |_: &Context| Err(Box::new(Error));
         let command = Command::new("hello").action(a);
         let app = App::new("test").command(command);
         let result = app.run(vec!["test".to_string(), "hello".to_string()]);
@@ -684,9 +681,7 @@ mod tests {
 
     #[test]
     fn command_with_ok_result_value_test() {
-        let a: Action = |_: &Context| {
-            Ok(())
-        };
+        let a: Action = |_: &Context| Ok(());
         let command = Command::new("hello").action(a);
         let app = App::new("test").command(command);
         let result = app.run(vec!["test".to_string(), "hello".to_string()]);
@@ -695,9 +690,7 @@ mod tests {
 
     #[test]
     fn command_with_error_result_value_test() {
-        let a: Action = |_: &Context| {
-            Err(Box::new(Error))
-        };
+        let a: Action = |_: &Context| Err(Box::new(Error));
         let command = Command::new("hello").action(a);
         let app = App::new("test").command(command);
         let result = app.run(vec!["test".to_string(), "hello".to_string()]);

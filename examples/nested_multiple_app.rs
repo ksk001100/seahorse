@@ -80,13 +80,13 @@ fn hello_command() -> Command {
 }
 
 fn add_action(c: &Context) -> Result<(), Box<dyn Error>> {
-    let sum: i32 = c.args
+    let sum: i32 = c
+        .args
         .iter()
-        .map(|n| {
-            n.parse::<i32>()
-                .map_err(|e| Box::new(e) as Box<dyn Error>)
-        })
-        .collect::<Result<Vec<i32>, Box<dyn Error>>>()?.into_iter().sum();
+        .map(|n| n.parse::<i32>().map_err(|e| Box::new(e) as Box<dyn Error>))
+        .collect::<Result<Vec<i32>, Box<dyn Error>>>()?
+        .into_iter()
+        .sum();
     println!("{}", sum);
     Ok(())
 }
