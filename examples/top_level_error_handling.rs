@@ -9,9 +9,9 @@ fn main() {
         .description(env!("CARGO_PKG_DESCRIPTION"))
         .usage("multiple_app [command] [arg]")
         .version(env!("CARGO_PKG_VERSION"))
-        .action_with_result(|c: &Context| {
+        .action(|c: &Context| {
             if c.bool_flag("error") {
-                Err(Box::new(Error))
+                Err(Box::new(MyCustomError))
             } else {
                 Ok(())
             }
@@ -22,19 +22,19 @@ fn main() {
                 .alias("e"),
         );
 
-    match app.run_with_result(args) {
+    match app.run(args) {
         Ok(_) => println!("OK"),
         Err(e) => println!("{:?}", e),
     };
 }
 
 #[derive(Debug, Clone)]
-struct Error;
+struct MyCustomError;
 
-impl fmt::Display for Error {
+impl fmt::Display for MyCustomError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "test error")
     }
 }
 
-impl std::error::Error for Error {}
+impl std::error::Error for MyCustomError {}

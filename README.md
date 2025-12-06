@@ -9,7 +9,6 @@
 
 ![Logo](https://repository-images.githubusercontent.com/226840735/d3e77500-51a0-11ea-845e-3cc87714278b)
 
-
 <div align="center">
 
 A minimal CLI framework written in Rust
@@ -18,16 +17,18 @@ A minimal CLI framework written in Rust
 
 </div>
 
-
 ## Features
+
 - Easy to use
 - No dependencies
 - Typed flags(Bool, String, Int, Float)
 
 ## Documentation
+
 [Here](https://docs.rs/seahorse)
 
 ## Usage
+
 To use seahorse, add this to your Cargo.toml:
 
 ```toml
@@ -55,7 +56,7 @@ $ echo 'seahorse = "*"' >> Cargo.toml
 ```
 
 ```rust
-use seahorse::{App};
+use seahorse::App;
 use std::env;
 
 fn main() {
@@ -65,9 +66,15 @@ fn main() {
         .author(env!("CARGO_PKG_AUTHORS"))
         .version(env!("CARGO_PKG_VERSION"))
         .usage("cli [args]")
-        .action(|c| println!("Hello, {:?}", c.args));
+        .action(|c| {
+            println!("Hello, {:?}", c.args);
+            Ok(())
+        });
 
-    app.run(args);
+    if let Err(e) = app.run(args) {
+        eprintln!("{}", e);
+        std::process::exit(1);
+    }
 }
 ```
 
@@ -78,9 +85,11 @@ $ ./target/release/cli John
 ```
 
 ### Multiple command application
+
 ```rust
 use seahorse::{App, Context, Command};
 use std::env;
+use std::error::Error;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -93,16 +102,26 @@ fn main() {
         .command(add_command())
         .command(sub_command());
 
-    app.run(args);
+    if let Err(e) = app.run(args) {
+        eprintln!("{}", e);
+        std::process::exit(1);
+    }
 }
 
-fn default_action(c: &Context) {
+fn default_action(c: &Context) -> Result<(), Box<dyn Error>> {
     println!("Hello, {:?}", c.args);
+    Ok(())
 }
 
-fn add_action(c: &Context) {
-    let sum: i32 = c.args.iter().map(|n| n.parse::<i32>().unwrap()).sum();
+fn add_action(c: &Context) -> Result<(), Box<dyn Error>> {
+    let sum: i32 = c.args
+        .iter()
+        .map(|n| n.parse::<i32>().map_err(|e| Box::new(e) as Box<dyn Error>))
+        .collect::<Result<Vec<i32>, Box<dyn Error>>>()?
+        .into_iter()
+        .sum();
     println!("{}", sum);
+    Ok(())
 }
 
 fn add_command() -> Command {
@@ -113,9 +132,16 @@ fn add_command() -> Command {
         .action(add_action)
 }
 
-fn sub_action(c: &Context) {
-    let sum: i32 = c.args.iter().map(|n| n.parse::<i32>().unwrap() * -1).sum();
+fn sub_action(c: &Context) -> Result<(), Box<dyn Error>> {
+    let sum: i32 = c.args
+        .iter()
+        .map(|n| n.parse::<i32>().map_err(|e| Box::new(e) as Box<dyn Error>))
+        .collect::<Result<Vec<i32>, Box<dyn Error>>>()?
+        .into_iter()
+        .map(|n| n * -1)
+        .sum();
     println!("{}", sum);
+    Ok(())
 }
 
 fn sub_command() -> Command {
@@ -143,6 +169,7 @@ $ cli sub 12 23 89
 ```rust
 use seahorse::{App, Command, Context, Flag, FlagType, error::FlagError};
 use std::env;
+use std::error::Error;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -164,10 +191,13 @@ fn main() {
         )
         .command(calc_command());
 
-    app.run(args);
+    if let Err(e) = app.run(args) {
+        eprintln!("{}", e);
+        std::process::exit(1);
+    }
 }
 
-fn default_action(c: &Context) {
+fn default_action(c: &Context) -> Result<(), Box<dyn Error>> {
     if c.bool_flag("bye") {
         println!("Bye, {:?}", c.args);
     } else {
@@ -177,26 +207,22 @@ fn default_action(c: &Context) {
     if let Ok(age) = c.int_flag("age") {
         println!("{:?} is {} years old", c.args, age);
     }
+    Ok(())
 }
 
-fn calc_action(c: &Context) {
+fn calc_action(c: &Context) -> Result<(), Box<dyn Error>> {
     match c.string_flag("operator") {
         Ok(op) => {
             let sum: i32 = match &*op {
                 "add" => c.args.iter().map(|n| n.parse::<i32>().unwrap()).sum(),
                 "sub" => c.args.iter().map(|n| n.parse::<i32>().unwrap() * -1).sum(),
-                _ => panic!("undefined operator..."),
+                _ => return Err(Box::new(FlagError::Undefined)),
             };
 
             println!("{}", sum);
+            Ok(())
         }
-        Err(e) => match e {
-            FlagError::Undefined => panic!("undefined operator..."),
-            FlagError::ArgumentError => panic!("argument error..."),
-            FlagError::NotFound => panic!("not found flag..."),
-            FlagError::ValueTypeError => panic!("value type mismatch..."),
-            FlagError::TypeError => panic!("flag type mismatch..."),
-        },
+        Err(e) => Err(Box::new(e))
     }
 }
 
@@ -241,6 +267,7 @@ $ cli calc -op sub 10 6 3 2
 ```rust
 use seahorse::{App, Context, Flag, FlagType};
 use std::env;
+use std::fmt;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -249,9 +276,9 @@ fn main() {
         .description(env!("CARGO_PKG_DESCRIPTION"))
         .usage("multiple_app [command] [arg]")
         .version(env!("CARGO_PKG_VERSION"))
-        .action_with_result(|c: &Context| {
+        .action(|c: &Context| {
             if c.bool_flag("error") {
-                Err(Box::new(Error))
+                Err(Box::new(MyCustomError))
             } else {
                 Ok(())
             }
@@ -262,22 +289,22 @@ fn main() {
                 .alias("e"),
         );
 
-    match app.run_with_result(args) {
+    match app.run(args) {
         Ok(_) => println!("OK"),
         Err(e) => println!("{}", e),
     };
 }
 
 #[derive(Debug, Clone)]
-struct Error;
+struct MyCustomError;
 
-impl fmt::Display for Error {
+impl fmt::Display for MyCustomError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "ERROR...")
     }
 }
 
-impl std::error::Error for Error {}
+impl std::error::Error for MyCustomError {}
 ```
 
 ```bash
@@ -291,12 +318,14 @@ $ cli -e
 ERROR...
 ```
 
-
 ## Contributing
+
 Please read [CONTRIBUTING.md](.github/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ## License
+
 This project is licensed under [MIT license](LICENSE)
 
 ## Code of Conduct
+
 Contribution to the seahorse crate is organized under the terms of the Contributor Covenant, the maintainer of seahorse, @ksk001100, promises to intervene to uphold that code of conduct.
