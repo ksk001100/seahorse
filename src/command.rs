@@ -1,5 +1,8 @@
 use crate::utils::normalized_args;
-use crate::{error::ConfigError, Action, Context, Flag, FlagType, Help};
+use crate::{
+    error::{ActionError, ActionErrorKind, ConfigError},
+    Action, Context, Flag, FlagType, Help,
+};
 use std::error::Error;
 
 /// Application command type
@@ -204,8 +207,14 @@ impl Command {
                         ))
                     }
                     None => {
-                        self.help();
-                        return Ok(());
+                        if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string())
+                        {
+                            self.help();
+                            return Ok(());
+                        }
+                        return Err(Box::new(ActionError {
+                            kind: ActionErrorKind::NotFound,
+                        }));
                     }
                 },
             },
@@ -382,6 +391,7 @@ impl Help for Command {
 
 #[cfg(test)]
 mod tests {
+    use crate::error::{ActionError, ActionErrorKind};
     use crate::{Action, Command, Context, Flag, FlagType};
 
     #[test]
@@ -423,5 +433,32 @@ mod tests {
 
         assert_eq!(c.name, "hello".to_string());
         assert_eq!(c.usage, Some("test hello user".to_string()));
+    }
+
+    #[test]
+    fn deep_nested_command_test() {
+        let a: Action = |c: &Context| {
+            println!("Hello, {:?}", c.args);
+            Ok(())
+        };
+        let sub_sub = Command::new("sub_sub").action(a);
+        let sub = Command::new("sub").command(sub_sub);
+        let c = Command::new("root").command(sub);
+
+        c.run(vec!["sub".to_string(), "sub_sub".to_string()])
+            .unwrap();
+    }
+
+    #[test]
+    fn subcommand_not_found_test() {
+        let c = Command::new("root");
+        let result = c.run(vec!["unknown".to_string()]);
+        assert!(result.is_err());
+        let err = result.err().unwrap();
+        if let Some(action_error) = err.downcast_ref::<ActionError>() {
+            assert_eq!(action_error.kind, ActionErrorKind::NotFound);
+        } else {
+            panic!("Expected ActionError::NotFound");
+        }
     }
 }
