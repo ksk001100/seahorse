@@ -1,7 +1,7 @@
 use crate::utils::normalized_args;
 use crate::{
     error::{ActionError, ActionErrorKind, ConfigError},
-    Action, Command, Context, Flag, FlagType, Help,
+    Action, Context, Flag, FlagType, Help,
 };
 use std::error::Error;
 
@@ -19,7 +19,9 @@ pub struct App {
     /// Application version
     pub version: Option<String>,
     /// Application commands
-    pub commands: Option<Vec<Command>>,
+    pub commands: Option<Vec<App>>,
+    /// Application alias
+    pub alias: Option<Vec<String>>,
     /// Application action
     pub action: Option<Action>,
     /// Application flags
@@ -109,9 +111,9 @@ impl App {
     /// Example
     ///
     /// ```
-    /// use seahorse::{App, Command};
+    /// use seahorse::App;
     ///
-    /// let command = Command::new("hello")
+    /// let command = App::new("hello")
     ///     .usage("cli hello [arg]")
     ///     .action(|c| {
     ///         println!("{:?}", c.args);
@@ -121,7 +123,7 @@ impl App {
     /// let app = App::new("cli")
     ///     .command(command);
     /// ```
-    pub fn command(mut self, command: Command) -> Self {
+    pub fn command(mut self, command: App) -> Self {
         if let Some(ref mut commands) = self.commands {
             if commands
                 .iter()
@@ -134,6 +136,25 @@ impl App {
             (*commands).push(command);
         } else {
             self.commands = Some(vec![command]);
+        }
+        self
+    }
+
+    /// Set alias of the app
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use seahorse::App;
+    ///
+    /// let command = App::new("cmd")
+    ///     .alias("c");
+    /// ```
+    pub fn alias<T: Into<String>>(mut self, name: T) -> Self {
+        if let Some(ref mut alias) = self.alias {
+            (*alias).push(name.into());
+        } else {
+            self.alias = Some(vec![name.into()]);
         }
         self
     }
@@ -211,7 +232,11 @@ impl App {
         };
 
         match self.select_command(cmd) {
-            Some(command) => command.run(args_v.to_vec()),
+            Some(command) => {
+                let mut args = vec![command.name.clone()];
+                args.extend(args_v.iter().cloned());
+                command.run(args)
+            }
             None => match self.action {
                 Some(action) => {
                     if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string()) {
@@ -245,7 +270,7 @@ impl App {
 
     /// Select command
     /// Gets the Command that matches the string passed in the argument
-    fn select_command(&self, cmd: &str) -> Option<&Command> {
+    fn select_command(&self, cmd: &str) -> Option<&App> {
         match &self.commands {
             Some(commands) => commands.iter().find(|command| match &command.alias {
                 Some(alias) => command.name == cmd || alias.iter().any(|a| a == cmd),
@@ -417,7 +442,7 @@ impl Help for App {
 #[cfg(test)]
 mod tests {
     use crate::error::{ActionError, ActionErrorKind, ConfigError};
-    use crate::{Action, App, Command, Context, Flag, FlagType};
+    use crate::{Action, App, Context, Flag, FlagType};
     use std::fmt;
 
     #[test]
@@ -450,7 +475,7 @@ mod tests {
             }
             Ok(()) // Added
         };
-        let c = Command::new("hello")
+        let c = App::new("hello")
             .alias("h")
             .description("hello command")
             .usage("test hello(h) args")
@@ -674,7 +699,7 @@ mod tests {
     #[test]
     fn command_with_ok_result_test() {
         let a: Action = |_: &Context| Ok(());
-        let command = Command::new("hello").action(a);
+        let command = App::new("hello").action(a);
         let app = App::new("test").command(command);
         app.run(vec!["test".to_string(), "hello".to_string()])
             .unwrap();
@@ -683,7 +708,7 @@ mod tests {
     #[test]
     fn command_with_error_result_test() {
         let a: Action = |_: &Context| Err(Box::new(Error));
-        let command = Command::new("hello").action(a);
+        let command = App::new("hello").action(a);
         let app = App::new("test").command(command);
         let result = app.run(vec!["test".to_string(), "hello".to_string()]);
         assert!(result.is_err());
@@ -692,7 +717,7 @@ mod tests {
     #[test]
     fn command_with_ok_result_value_test() {
         let a: Action = |_: &Context| Ok(());
-        let command = Command::new("hello").action(a);
+        let command = App::new("hello").action(a);
         let app = App::new("test").command(command);
         let result = app.run(vec!["test".to_string(), "hello".to_string()]);
         assert!(!result.is_err());
@@ -701,7 +726,7 @@ mod tests {
     #[test]
     fn command_with_error_result_value_test() {
         let a: Action = |_: &Context| Err(Box::new(Error));
-        let command = Command::new("hello").action(a);
+        let command = App::new("hello").action(a);
         let app = App::new("test").command(command);
         let result = app.run(vec!["test".to_string(), "hello".to_string()]);
         assert!(result.is_err());
@@ -709,8 +734,8 @@ mod tests {
 
     #[test]
     fn duplicate_command_name_test() {
-        let command1 = Command::new("hello");
-        let command2 = Command::new("hello");
+        let command1 = App::new("hello");
+        let command2 = App::new("hello");
         let app = App::new("test").command(command1).command(command2);
 
         let result = app.run(vec!["test".to_string(), "hello".to_string()]);
