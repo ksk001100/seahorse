@@ -87,7 +87,7 @@ $ ./target/release/cli John
 ### Multiple command application
 
 ```rust
-use seahorse::{App, Context, Command};
+use seahorse::{App, Context};
 use std::env;
 use std::error::Error;
 
@@ -124,8 +124,8 @@ fn add_action(c: &Context) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn add_command() -> Command {
-    Command::new("add")
+fn add_command() -> App {
+    App::new("add")
         .description("add command")
         .alias("a")
         .usage("cli add(a) [nums...]")
@@ -144,14 +144,13 @@ fn sub_action(c: &Context) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn sub_command() -> Command {
-    Command::new("sub")
+fn sub_command() -> App {
+    App::new("sub")
         .description("sub command")
         .alias("s")
         .usage("cli sub(s) [nums...]")
         .action(sub_action)
-}
-```
+}```
 
 ```bash
 $ cli John
@@ -167,7 +166,7 @@ $ cli sub 12 23 89
 ### Branch processing by flag
 
 ```rust
-use seahorse::{App, Command, Context, Flag, FlagType, error::FlagError};
+use seahorse::{App, Context, Flag, FlagType, error::FlagError};
 use std::env;
 use std::error::Error;
 
@@ -226,8 +225,8 @@ fn calc_action(c: &Context) -> Result<(), Box<dyn Error>> {
     }
 }
 
-fn calc_command() -> Command {
-    Command::new("calc")
+fn calc_command() -> App {
+    App::new("calc")
         .description("calc command")
         .alias("cl, c")
         .usage("cli calc(cl, c) [nums...]")
@@ -237,8 +236,7 @@ fn calc_command() -> Command {
                 .description("Operator flag(ex. cli calc --operator add 1 2 3)")
                 .alias("op"),
         )
-}
-```
+}```
 
 ```bash
 $ cli John
