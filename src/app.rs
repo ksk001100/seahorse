@@ -299,12 +299,10 @@ impl App {
                     } else {
                         format!("{}, --{}, {}", long_alias, f.name, val)
                     }
+                } else if long_alias.is_empty() {
+                    format!("{}, --{} {}", alias, f.name, val)
                 } else {
-                    if long_alias.is_empty() {
-                        format!("{}, --{} {}", alias, f.name, val)
-                    } else {
-                        format!("{}, {}, --{} {}", alias, long_alias, f.name, val)
-                    }
+                    format!("{}, {}, --{} {}", alias, long_alias, f.name, val)
                 };
 
                 (help, f.description.clone())
@@ -313,7 +311,7 @@ impl App {
             let flag_name_max_len = flag_helps
                 .clone()
                 .map(|h| h.0.len())
-                .chain(vec![help_flag.len()].into_iter())
+                .chain(vec![help_flag.len()])
                 .max()
                 .unwrap();
 
