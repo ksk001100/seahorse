@@ -212,9 +212,9 @@ impl Command {
                             self.help();
                             return Ok(());
                         }
-                        return Err(Box::new(ActionError {
+                        Err(Box::new(ActionError {
                             kind: ActionErrorKind::NotFound,
-                        }));
+                        }))
                     }
                 },
             },
@@ -232,7 +232,7 @@ impl Command {
                 }
                 None => {
                     self.help();
-                    return Ok(());
+                    Ok(())
                 }
             },
         }
@@ -282,12 +282,10 @@ impl Command {
                     } else {
                         format!("{}, --{}, {}", long_alias, f.name, val)
                     }
+                } else if long_alias.is_empty() {
+                    format!("{}, --{} {}", alias, f.name, val)
                 } else {
-                    if long_alias.is_empty() {
-                        format!("{}, --{} {}", alias, f.name, val)
-                    } else {
-                        format!("{}, {}, --{} {}", alias, long_alias, f.name, val)
-                    }
+                    format!("{}, {}, --{} {}", alias, long_alias, f.name, val)
                 };
 
                 (help, f.description.clone())
@@ -296,7 +294,7 @@ impl Command {
             let flag_name_max_len = flag_helps
                 .clone()
                 .map(|h| h.0.len())
-                .chain(vec![help_flag.len()].into_iter())
+                .chain(vec![help_flag.len()])
                 .max()
                 .unwrap();
 

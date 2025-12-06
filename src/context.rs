@@ -134,7 +134,7 @@ impl Context {
 
         r.iter()
             .map(|r| match r {
-                Ok(FlagValue::Bool(val)) => Ok(val.clone()),
+                Ok(FlagValue::Bool(val)) => Ok(*val),
                 Err(FlagError::NotFound) => Err(FlagError::NotFound),
                 _ => Err(FlagError::TypeError),
             })
@@ -234,7 +234,7 @@ impl Context {
 
         r.iter()
             .map(|r| match r {
-                Ok(FlagValue::Int(val)) => Ok(val.clone()),
+                Ok(FlagValue::Int(val)) => Ok(*val),
                 Err(FlagError::NotFound) => Err(FlagError::NotFound),
                 _ => Err(FlagError::TypeError),
             })
@@ -284,7 +284,7 @@ impl Context {
 
         r.iter()
             .map(|r| match r {
-                Ok(FlagValue::Uint(val)) => Ok(val.clone()),
+                Ok(FlagValue::Uint(val)) => Ok(*val),
                 Err(FlagError::NotFound) => Err(FlagError::NotFound),
                 _ => Err(FlagError::TypeError),
             })
