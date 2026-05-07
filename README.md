@@ -13,8 +13,6 @@
 
 A minimal CLI framework written in Rust
 
-[![Join our Discord server!](https://invidget.switchblade.xyz/844112922597785620?theme=dark)](https://discord.gg/aBDem2e6UF)
-
 </div>
 
 ## Features
